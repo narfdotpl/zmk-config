@@ -8,10 +8,11 @@
 
         // Colemak DH
         // empty side columns (pretending it's a 3x5, not a 3x6 Corne)
+        // home row mods (Miryoku style)
         default_layer {
             bindings = <
 &none &kp Q &kp W &kp F &kp P &kp B    &kp J &kp L  &kp U     &kp Y   &kp SQT  &none
-&none &kp A &kp R &kp S &kp T &kp G    &kp M &kp N  &kp E     &kp I   &kp O    &none
+&none &mt LCTRL A &mt RALT R &mt LCMD S &mt LSHIFT T &kp G    &kp M &mt LSHIFT N  &mt LCMD E &mt RALT I &mt LCTRL O &none
 &none &kp Z &kp X &kp C &kp D &kp V    &kp K &kp H  &kp COMMA &kp DOT &kp FSLH &none
         &kp EQUAL &kp SPACE &kp ESC    &kp RET &kp BSPC &kp COLON
             >;
