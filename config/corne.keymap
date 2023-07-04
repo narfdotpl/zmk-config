@@ -3,6 +3,8 @@
 #include <dt-bindings/zmk/bt.h>
 
 #define MEDIA 1
+#define SYMBOLS 2
+#define NUMBERS 3
 
 / {
     keymap {
@@ -16,7 +18,7 @@
 &none &kp Q &kp W &kp F &kp P &kp B    &kp J &kp L  &kp U     &kp Y   &kp SQT  &none
 &none &mt LCTRL A &mt RALT R &mt LCMD S &mt LSHIFT T &kp G    &kp M &mt LSHIFT N  &mt LCMD E &mt RALT I &mt LCTRL O &none
 &none &kp Z &kp X &kp C &kp D &kp V    &kp K &kp H  &kp COMMA &kp DOT &kp FSLH &none
-        &kp EQUAL &kp SPACE &lt MEDIA ESC    &kp RET &kp BSPC &kp COLON
+        &kp EQUAL &kp SPACE &lt MEDIA ESC    &kp RET &kp BSPC &lt SYMBOLS COLON
             >;
         };
 
@@ -26,6 +28,24 @@
 &trans &trans &trans &trans &trans &trans    &caps_word    &kp LEFT      &kp DOWN         &kp RIGHT  &trans &trans
 &trans &trans &trans &trans &trans &trans    &trans        &kp C_PREV    &kp C_PLAY_PAUSE &kp C_NEXT &trans &trans
                      &trans &trans &trans    &kp K_MUTE    &kp C_VOL_DN  &kp C_VOL_UP
+            >;
+        };
+
+        symbols_layer {
+            bindings = <
+&trans &trans &trans &trans &trans &trans    &trans &trans &trans &trans &trans &trans
+&trans &trans &trans &trans &trans &trans    &trans &trans &trans &trans &trans &trans
+&trans &trans &trans &trans &trans &trans    &trans &trans &trans &trans &trans &trans
+                     &trans &kp TAB &kp TILDE    &trans &trans &trans
+            >;
+        };
+
+        numbers_layer {
+            bindings = <
+&trans &trans &trans &trans &trans &trans    &trans &trans &trans &trans &trans &trans
+&trans &trans &trans &trans &trans &trans    &trans &trans &trans &trans &trans &trans
+&trans &trans &trans &trans &trans &trans    &trans &trans &trans &trans &trans &trans
+                     &trans &trans &trans    &trans &trans &trans
             >;
         };
 
