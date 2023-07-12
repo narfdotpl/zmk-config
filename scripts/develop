@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+./scripts/start
+
+pyenv activate zmk-config
+ls */* | peat './scripts/build'

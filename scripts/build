@@ -1,0 +1,55 @@
+#!/usr/bin/env python
+# encoding: utf-8
+
+import subprocess
+
+from enum import StrEnum
+
+
+class Half(StrEnum):
+    LEFT = 'left'
+    RIGHT = 'right'
+
+
+def run(command: str) -> str:
+    return subprocess.check_output(command, shell=True).decode('utf8')
+
+
+def get_container_id() -> str:
+    for line in run('docker container list').split('\n'):
+        container_id, image, *_ = line.split()
+        if image.startswith('vsc-zmk-'):
+            return container_id
+
+
+def build(half: Half, container_id: str) -> subprocess.Popen:
+    def cmd(container_command: str) -> str:
+        return f"docker container exec {container_id} bash -c '{container_command}'"
+
+    app_dir = '/workspaces/zmk/app'
+    build_command = f'cd {app_dir} && west build -d build/{half}'
+
+    # > Build times can be significantly reduced after the initial build
+    # > by omitting all build arguments except the build directory
+    # >
+    # > — https://zmk.dev/docs/development/build-flash
+    file_exists = subprocess.Popen(cmd(f'ls {app_dir}/build/{half}/zephyr/zmk.uf2'), shell=True).wait() == 0
+    is_first_build = not file_exists
+    if is_first_build:
+        build_command += f' -b nice_nano -- -DSHIELD=corne_{half} -DZMK_CONFIG=/workspaces/zmk-config/config'
+
+    return subprocess.Popen(cmd(build_command), shell=True)
+
+
+def main():
+    container_id = get_container_id()
+
+    left = build(Half.LEFT, container_id)
+    right = build(Half.RIGHT, container_id)
+
+    left.wait()
+    right.wait()
+
+
+if __name__ == '__main__':
+    main()
