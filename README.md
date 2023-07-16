@@ -38,5 +38,8 @@ pyenv activate zmk-config
 pip install peat
 ```
 
+Install [ZMK Tools][] VS Code plugin.
+
   [User Setup]: https://zmk.dev/docs/user-setup
   [Toolchain Setup]: https://zmk.dev/docs/development/setup
+  [ZMK Tools]: https://marketplace.visualstudio.com/items?itemName=spadin.zmk-tools
