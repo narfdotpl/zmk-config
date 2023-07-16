@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+CONTAINER=$(docker container list | grep vsc-zmk- | awk '{ print $1 }')
+docker container cp $CONTAINER:/workspaces/zmk/app/build/left/zephyr/zmk.uf2 /Volumes/NICENANO
+docker container cp $CONTAINER:/workspaces/zmk/app/build/right/zephyr/zmk.uf2 /Volumes/NICENANO\ 1
