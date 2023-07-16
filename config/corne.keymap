@@ -19,7 +19,7 @@
 &none &kp Q &kp W &kp F &kp P &kp B    &kp K &kp L  &kp U     &kp Y   &kp SQT  &none
 &none &mt LCTRL A &mt RALT R &mt LCMD S &mt LSHIFT T &kp G    &kp M &mt LSHIFT N  &mt LCMD E &mt RALT I &mt LCTRL O &none
 &none &kp Z &kp X &kp C &kp D &kp V    &kp J &kp H  &kp COMMA &kp DOT &kp FSLH &none
-        &kp EQUAL &lt HYPER SPACE &lt MEDIA ESC    &kp RET &lt HYPER BSPC &lt SYMBOLS COLON
+        &lt NUMBERS EQUAL &lt HYPER SPACE &lt MEDIA ESC    &kp RET &lt HYPER BSPC &lt SYMBOLS COLON
             >;
         };
 
@@ -52,10 +52,10 @@
 
         numbers_layer {
             bindings = <
-&trans &trans &trans &trans &trans &trans    &trans &trans &trans &trans &trans &trans
-&trans &trans &trans &trans &trans &trans    &trans &trans &trans &trans &trans &trans
-&trans &trans &trans &trans &trans &trans    &trans &trans &trans &trans &trans &trans
-                     &trans &trans &trans    &trans &trans &trans
+&trans &trans &trans &trans &trans &trans    &trans &kp N7 &kp N8 &kp N9 &trans &trans
+&trans &trans &trans &trans &trans &trans    &trans &kp N4 &kp N5 &kp N6 &trans &trans
+&trans &trans &trans &trans &trans &trans    &trans &kp N1 &kp N2 &kp N3 &trans &trans
+                     &trans &trans &trans    &trans &kp N0 &kp DOT
             >;
         };
 
