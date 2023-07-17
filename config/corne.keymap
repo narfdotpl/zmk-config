@@ -11,14 +11,14 @@
     keymap {
         compatible = "zmk,keymap";
 
-        // Colemak DH JK (J and K swapped)
+        // Colemak JK (my own flavour with affordances for Polish and Vim's JK)
         // empty side columns (pretending it's a 3x5, not a 3x6 Corne)
         // home row mods (Miryoku style)
         default_layer {
             bindings = <
 &none &kp Q &kp W &kp F &kp P &kp B    &kp K &kp L  &kp U     &kp Y   &kp SQT  &none
 &none &mt LCTRL A &mt RALT R &mt LCMD S &mt LSHIFT T &kp G    &kp M &mt LSHIFT N  &mt LCMD E &mt RALT I &mt LCTRL O &none
-&none &kp Z &kp X &kp C &kp D &kp V    &kp J &kp H  &kp COMMA &kp DOT &kp FSLH &none
+&none &kp X &kp V &kp C &kp Z &kp D    &kp J &kp H  &kp COMMA &kp DOT &kp FSLH &none
         &lt NUMBERS EQUAL &lt HYPER SPACE &lt MEDIA ESC    &kp RET &lt HYPER BSPC &lt SYMBOLS COLON
             >;
         };
