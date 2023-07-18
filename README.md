@@ -22,8 +22,7 @@ I use macOS, VS Code, and Docker Desktop. I followed the "VS Code & Docker" inst
 ```
 
 1. Connect both halves to the Mac using USB-C.
-2. Before flashing, reset first the left one, then the right one (volume
-   names depend on the order).
+2. Before flashing, reset first the right one, then the left one (volume names depend on the order).
 3. Any time you save a file, the script will build and flash.
 
 
