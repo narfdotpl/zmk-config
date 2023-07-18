@@ -50,7 +50,7 @@
 &trans &trans &kp LG(LS(LBKT)) &kp LG(LS(RBKT)) &trans &trans    &trans &trans &trans &trans &trans &trans
 &trans &trans &trans &trans &trans &trans    &trans &trans &trans &trans &trans &trans
 &trans &trans &trans &trans &trans &trans    &trans &trans &trans &trans &trans &trans
-                     &trans &kp TILDE &kp TAB    &trans &trans &trans
+                     &trans &kp GRAVE &kp TAB    &trans &trans &trans
             >;
         };
 
@@ -59,7 +59,7 @@
 &trans &trans &trans &trans &trans &trans    &trans &trans &trans &trans &trans &trans
 &trans &trans &trans &trans &trans &trans    &trans &trans &trans &trans &trans &trans
 &trans &trans &trans &trans &trans &trans    &trans &trans &trans &trans &trans &trans
-                     &trans &kp TILDE &kp TAB    &trans &trans &trans
+                     &trans &kp GRAVE &kp TAB    &trans &trans &trans
             >;
         };
 
