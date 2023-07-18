@@ -8,6 +8,19 @@
 #define NUMBERS 4
 
 / {
+    // https://zmk.dev/docs/behaviors/hold-tap#option-3-balanced
+    behaviors {
+        bhm: balanced_homerow_mods {
+            compatible = "zmk,behavior-hold-tap";
+            label = "HOMEROW_MODS";
+            #binding-cells = <2>;
+            tapping-term-ms = <200>;
+            quick-tap-ms = <0>;
+            flavor = "balanced";
+            bindings = <&kp>, <&kp>;
+        };
+    };
+
     keymap {
         compatible = "zmk,keymap";
 
@@ -17,7 +30,7 @@
         default_layer {
             bindings = <
 &none &kp Q &kp F &kp W &kp P &kp B    &kp K &kp L  &kp U     &kp Y   &kp SQT  &none
-&none &mt LCTRL A &mt RALT R &mt LCMD S &mt LSHIFT T &kp G    &kp M &mt LSHIFT N  &mt LCMD E &mt RALT I &mt LCTRL O &none
+&none &bhm LCTRL A &bhm RALT R &bhm LCMD S &bhm LSHIFT T &kp G    &kp M &bhm LSHIFT N  &bhm LCMD E &bhm RALT I &bhm LCTRL O &none
 &none &kp X &kp V &kp C &kp Z &kp D    &kp J &kp H  &kp COMMA &kp DOT &kp FSLH &none
         &lt NUMBERS EQUAL &lt HYPER SPACE &lt MEDIA ESC    &kp RET &lt HYPER BSPC &lt SYMBOLS COLON
             >;
