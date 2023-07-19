@@ -8,6 +8,21 @@
 #define NUMBERS 4
 
 / {
+    macros {
+        // hold to enable hyper layer and left command at the same time
+        hyper_and_lcmd: hyper_and_lcmd {
+            label = "hyper_and_lcmd";
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            wait-ms = <0>;
+            bindings
+                = <&macro_press &mo HYPER &kp LCMD>
+                , <&macro_pause_for_release>
+                , <&macro_release &mo HYPER &kp LCMD>
+                ;
+        };
+    };
+
     behaviors {
         // https://zmk.dev/docs/behaviors/hold-tap#option-3-balanced
         bhm: balanced_homerow_mods {
@@ -18,6 +33,17 @@
             quick-tap-ms = <0>;
             flavor = "balanced";
             bindings = <&kp>, <&kp>;
+        };
+
+        // `&lt` using `&hyper_and_lcmd`
+        // first parameter is not used, so you can pass anything, e.g. 0
+        lt_hyper: lt_hyper {
+            compatible = "zmk,behavior-hold-tap";
+            label = "lt_hyper";
+            #binding-cells = <2>;
+            flavor = "tap-preferred";
+            tapping-term-ms = <200>;
+            bindings = <&hyper_and_lcmd>, <&kp>;
         };
 
         // . ,
@@ -59,7 +85,7 @@
 &none &kp Q &kp F &kp W &kp P &kp B    &kp K &kp L  &kp U     &kp Y   &kp SQT  &none
 &none &bhm LCTRL A &bhm RALT R &bhm LCMD S &bhm LSHIFT T &kp G    &kp M &bhm LSHIFT N  &bhm LCMD E &bhm RALT I &bhm LCTRL O &none
 &none &kp X &kp V &kp C &kp Z &kp D    &kp J &kp H  &narf_dot &narf_colon &narf_qm &none
-        &lt NUMBERS EQUAL &lt HYPER SPACE &lt MEDIA ESC    &kp RET &lt HYPER BSPC &lt SYMBOLS COLON
+        &lt NUMBERS EQUAL &lt_hyper 0 SPACE &lt MEDIA ESC    &kp RET &lt_hyper 0 BSPC &lt SYMBOLS COLON
             >;
         };
 
