@@ -8,8 +8,8 @@
 #define NUMBERS 4
 
 / {
-    // https://zmk.dev/docs/behaviors/hold-tap#option-3-balanced
     behaviors {
+        // https://zmk.dev/docs/behaviors/hold-tap#option-3-balanced
         bhm: balanced_homerow_mods {
             compatible = "zmk,behavior-hold-tap";
             label = "HOMEROW_MODS";
