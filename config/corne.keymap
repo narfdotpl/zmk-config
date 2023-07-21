@@ -77,9 +77,10 @@
     keymap {
         compatible = "zmk,keymap";
 
-        // Colemak narf (my own flavour with affordances for Polish and Vim)
+        // Colemak narf (my own flavour of Colemak DH with affordances for Polish and Vim)
         // empty side columns (pretending it's a 3x5, not a 3x6 Corne)
-        // home row mods (Miryoku style)
+        // home row mods (inspired by Miryoku)
+        // layers on thumbs
         default_layer {
             bindings = <
 &none &kp Q &kp F &kp W &kp P &kp B    &kp K &kp L  &kp U     &kp Y   &kp GRAVE  &none
