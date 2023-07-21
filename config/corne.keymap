@@ -10,6 +10,11 @@
 #define PREV_TAB LG(LS(LBKT))
 #define NEXT_TAB LG(LS(RBKT))
 
+#define PREV_SPACE LC(LEFT)
+#define NEXT_SPACE LC(RIGHT)
+
+#define HY(X) LA(LC(LG(LS(X))))
+
 
 / {
     macros {
@@ -48,6 +53,22 @@
             flavor = "tap-preferred";
             tapping-term-ms = <200>;
             bindings = <&hyper_and_lcmd>, <&kp>;
+        };
+
+        // hyper layer also holds down CMD, so I use a mod-morph to escape it
+        prev_space: prev_space {
+            compatible = "zmk,behavior-mod-morph";
+            label = "prev_space";
+            #binding-cells = <0>;
+            bindings = <&kp PREV_SPACE>, <&kp PREV_SPACE>;
+            mods = <(MOD_LGUI)>;
+        };
+        next_space: next_space {
+            compatible = "zmk,behavior-mod-morph";
+            label = "next_space";
+            #binding-cells = <0>;
+            bindings = <&kp NEXT_SPACE>, <&kp NEXT_SPACE>;
+            mods = <(MOD_LGUI)>;
         };
 
         // . ,
@@ -105,10 +126,10 @@
 
         hyper_layer {
             bindings = <
-&trans &trans &kp PREV_TAB &kp NEXT_TAB &trans    &trans     &trans &trans &trans &trans &trans &trans
-&trans &trans &trans       &trans       &trans    &trans     &trans &trans &trans &trans &trans &trans
-&trans &trans &trans       &trans       &trans    &trans     &trans &trans &trans &trans &trans &trans
-                           &trans       &kp GRAVE &kp TAB    &trans &trans &trans
+&none &none     &kp PREV_TAB &kp NEXT_TAB &kp HY(A) &kp HY(B)     &kp HY(M) &prev_space  &kp HY(UP)   &next_space   &none     &none
+&none &kp HY(C) &kp HY(D)    &kp HY(E)    &kp HY(F) &kp HY(G)     &kp HY(N) &kp HY(LEFT) &kp HY(DOWN) &kp HY(RIGHT) &none     &none
+&none &kp HY(H) &kp HY(I)    &kp HY(J)    &kp HY(K) &kp HY(L)     &kp HY(O) &kp HY(P)    &kp HY(Q)    &kp HY(R)     &kp HY(S) &none
+                             &none        &kp GRAVE &kp TAB       &kp HY(X) &kp HY(Y)    &kp HY(Z)
             >;
         };
 
