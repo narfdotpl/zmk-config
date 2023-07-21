@@ -7,6 +7,10 @@
 #define SYMBOLS 3
 #define NUMBERS 4
 
+#define PREV_TAB LG(LS(LBKT))
+#define NEXT_TAB LG(LS(RBKT))
+
+
 / {
     macros {
         // hold to enable hyper layer and left command at the same time
@@ -101,7 +105,7 @@
 
         hyper_layer {
             bindings = <
-&trans &trans &kp LG(LS(LBKT)) &kp LG(LS(RBKT)) &trans &trans    &trans &trans &trans &trans &trans &trans
+&trans &trans &kp PREV_TAB &kp NEXT_TAB &trans &trans    &trans &trans &trans &trans &trans &trans
 &trans &trans &trans &trans &trans &trans    &trans &trans &trans &trans &trans &trans
 &trans &trans &trans &trans &trans &trans    &trans &trans &trans &trans &trans &trans
                      &trans &kp GRAVE &kp TAB    &trans &trans &trans
