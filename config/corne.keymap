@@ -87,28 +87,28 @@
         // layers on thumbs
         default_layer {
             bindings = <
-&none &kp Q &kp F &kp W &kp P &kp B    &kp K &kp L  &kp U     &kp Y   &kp GRAVE  &none
+&none &kp        Q &kp       F &kp       W &kp         P &kp B    &kp K &kp         L  &kp       U &kp       Y &kp  GRAVE   &none
 &none &bhm LCTRL A &bhm RALT R &bhm LCMD S &bhm LSHIFT T &kp G    &kp M &bhm LSHIFT N  &bhm LCMD E &bhm RALT I &bhm LCTRL O &none
-&none &kp X &kp V &kp C &mt LA(X) Z &kp D    &kp J &kp H  &narf_dot &narf_colon &narf_qm &none
-        &lt NUMBERS EQUAL &lt_hyper 0 SPACE &lt MEDIA ESC    &lt SYMBOLS RET &lt_hyper 0 BSPC &kp APOS
+&none &kp        X &kp       V &kp       C &mt   LA(X) Z &kp D    &kp J &kp         H  &narf_dot   &narf_colon &narf_qm     &none
+             &lt NUMBERS EQUAL &lt_hyper 0 SPACE &lt MEDIA ESC    &lt SYMBOLS RET &lt_hyper 0 BSPC &kp APOS
             >;
         };
 
         media_layer {
             bindings = <
 &trans &bootloader &trans &trans &trans &trans    &kp C_BRI_DEC &kp C_BRI_INC &kp UP           &trans     &bootloader &trans
-&trans &trans &trans &trans &trans &trans    &caps_word    &kp LEFT      &kp DOWN         &kp RIGHT  &trans &trans
-&trans &trans &trans &trans &trans &trans    &trans        &kp C_PREV    &kp C_PLAY_PAUSE &kp C_NEXT &trans &trans
-                     &trans &trans &trans    &kp K_MUTE    &kp C_VOL_DN  &kp C_VOL_UP
+&trans &trans      &trans &trans &trans &trans    &caps_word    &kp LEFT      &kp DOWN         &kp RIGHT  &trans      &trans
+&trans &trans      &trans &trans &trans &trans    &trans        &kp C_PREV    &kp C_PLAY_PAUSE &kp C_NEXT &trans      &trans
+                          &trans &trans &trans    &kp K_MUTE    &kp C_VOL_DN  &kp C_VOL_UP
             >;
         };
 
         hyper_layer {
             bindings = <
-&trans &trans &kp PREV_TAB &kp NEXT_TAB &trans &trans    &trans &trans &trans &trans &trans &trans
-&trans &trans &trans &trans &trans &trans    &trans &trans &trans &trans &trans &trans
-&trans &trans &trans &trans &trans &trans    &trans &trans &trans &trans &trans &trans
-                     &trans &kp GRAVE &kp TAB    &trans &trans &trans
+&trans &trans &kp PREV_TAB &kp NEXT_TAB &trans    &trans     &trans &trans &trans &trans &trans &trans
+&trans &trans &trans       &trans       &trans    &trans     &trans &trans &trans &trans &trans &trans
+&trans &trans &trans       &trans       &trans    &trans     &trans &trans &trans &trans &trans &trans
+                           &trans       &kp GRAVE &kp TAB    &trans &trans &trans
             >;
         };
 
