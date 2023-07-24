@@ -14,6 +14,7 @@
 #define NEXT_SPACE LC(RIGHT)
 
 #define HY(X) LA(LC(LG(LS(X))))
+#define EMOJI LC(LG(SPACE))
 
 
 / {
@@ -135,10 +136,10 @@
 
         symbols_layer {
             bindings = <
-&trans &trans &trans    &trans   &trans         &trans          &trans &trans &trans &trans &trans &trans
-&trans &trans &kp LBRC  &kp LBKT &kp LPAR       &trans          &trans &trans &trans &trans &trans &trans
-&trans &trans &kp MINUS &kp PLUS &kp SLASH      &kp ASTERISK    &trans &trans &trans &trans &trans &trans
-                        &trans   &kp UNDERSCORE &kp EQUAL       &trans &trans &trans
+&trans &trans &trans    &trans    &trans         &trans          &trans &trans &trans &trans &trans &trans
+&trans &trans &kp LBRC  &kp LBKT  &kp LPAR       &trans          &trans &trans &trans &trans &trans &trans
+&trans &trans &kp MINUS &kp PLUS  &kp SLASH      &kp ASTERISK    &trans &trans &trans &trans &trans &trans
+                        &kp EMOJI &kp UNDERSCORE &kp EQUAL       &trans &trans &trans
             >;
         };
 
