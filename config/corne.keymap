@@ -86,6 +86,11 @@
         MAKE_TAP_SHIFT(ts_dot, DOT, COMMA)
         MAKE_TAP_SHIFT(ts_colon, COLON, SEMICOLON)
         MAKE_TAP_SHIFT(ts_qm, QUESTION, EXCLAMATION)
+
+        // brackets
+        MAKE_TAP_SHIFT(ts_par, LPAR, RPAR)
+        MAKE_TAP_SHIFT(ts_bkt, LBKT, RBKT)
+        MAKE_TAP_SHIFT(ts_brc, LBRC, RBRC)
     };
 
     keymap {
@@ -125,7 +130,7 @@
         symbols_layer {
             bindings = <
 &trans &trans &trans    &trans    &trans         &trans          &trans &trans &trans &trans &trans &trans
-&trans &trans &kp LBRC  &kp LBKT  &kp LPAR       &trans          &trans &trans &trans &trans &trans &trans
+&trans &trans &ts_brc   &ts_bkt   &ts_par        &trans          &trans &trans &trans &trans &trans &trans
 &trans &trans &kp MINUS &kp PLUS  &kp SLASH      &kp ASTERISK    &trans &trans &trans &trans &trans &trans
                         &kp EMOJI &kp UNDERSCORE &kp EQUAL       &trans &trans &trans
             >;
