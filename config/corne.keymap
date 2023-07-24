@@ -135,10 +135,10 @@
 
         symbols_layer {
             bindings = <
-&trans &trans &trans &trans &trans &trans    &trans &trans &trans &trans &trans &trans
-&trans &trans &trans &trans &trans &trans    &trans &trans &trans &trans &trans &trans
-&trans &trans &trans &trans &trans &trans    &trans &trans &trans &trans &trans &trans
-                     &trans &kp GRAVE &kp TAB    &trans &trans &trans
+&trans &trans &trans    &trans   &trans         &trans          &trans &trans &trans &trans &trans &trans
+&trans &trans &kp LBRC  &kp LBKT &kp LPAR       &trans          &trans &trans &trans &trans &trans &trans
+&trans &trans &kp MINUS &kp PLUS &kp SLASH      &kp ASTERISK    &trans &trans &trans &trans &trans &trans
+                        &trans   &kp UNDERSCORE &kp EQUAL       &trans &trans &trans
             >;
         };
 
