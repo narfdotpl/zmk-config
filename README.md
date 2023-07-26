@@ -5,6 +5,26 @@ Configuration of my Corne keyboard.
 _Early WIP_
 
 
+## Layers
+
+_Not everything is fully implemented yet_
+
+
+### Base
+
+![](images/layers/base.png)
+
+
+### Colemak DH mods for Polish and Vim (Polemak?)
+
+![](images/layers/colemak-mods.png)
+
+
+### Hyper
+
+![](images/layers/hyper.png)
+
+
 ## Building firmware locally
 
 ZMK configs are designed for [building remotely using GitHub Actions][User Setup]. In my experience the remote build takes anywhere from a few minutes to an hour, depending on cloud weather, and as such is not acceptable for interactive development or experimentation. Therefore, I created a few scripts to automate building and flashing on my local machine.
