@@ -93,6 +93,7 @@
         MAKE_TAP_SHIFT(ts_par, LPAR, RPAR)
         MAKE_TAP_SHIFT(ts_bkt, LBKT, RBKT)
         MAKE_TAP_SHIFT(ts_brc, LBRC, RBRC)
+        MAKE_TAP_SHIFT(ts_lt, LT, GT)
 
         MAKE_TAP_SHIFT(ts_slash, SLASH, BACKSLASH)
     };
@@ -142,10 +143,10 @@
 
         symbols_layer {
             bindings = <
-&trans &trans &trans    &trans    &trans         &trans          &trans &trans &trans &trans &trans &trans
-&trans &trans &ts_brc   &ts_bkt   &ts_par        &trans          &trans &trans &trans &trans &trans &trans
-&trans &trans &kp MINUS &kp PLUS  &ts_slash      &kp ASTERISK    &trans &trans &trans &trans &trans &trans
-                        &kp EMOJI &kp UNDERSCORE &kp EQUAL       &trans &trans &trans
+&none &kp PERCENT &kp AT    &kp HASH  &kp CARET      &kp PIPE        &trans &trans &trans &trans &trans &trans
+&none &kp DOLLAR  &ts_brc   &ts_bkt   &ts_par        &ts_lt          &trans &trans &trans &trans &trans &trans
+&none &kp AMPS    &kp MINUS &kp PLUS  &ts_slash      &kp ASTERISK    &trans &trans &trans &trans &trans &trans
+                            &kp EMOJI &kp UNDERSCORE &kp EQUAL       &trans &trans &trans
             >;
         };
 
