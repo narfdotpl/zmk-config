@@ -68,22 +68,6 @@
             bindings = <&hyper_and_lcmd>, <&kp>;
         };
 
-        // hyper layer also holds down CMD, so I use a mod-morph to escape it
-        prev_space: prev_space {
-            compatible = "zmk,behavior-mod-morph";
-            label = "prev_space";
-            #binding-cells = <0>;
-            bindings = <&kp PREV_SPACE>, <&kp PREV_SPACE>;
-            mods = <(MOD_LGUI)>;
-        };
-        next_space: next_space {
-            compatible = "zmk,behavior-mod-morph";
-            label = "next_space";
-            #binding-cells = <0>;
-            bindings = <&kp NEXT_SPACE>, <&kp NEXT_SPACE>;
-            mods = <(MOD_LGUI)>;
-        };
-
         // interpunction
         MAKE_TAP_SHIFT(ts_dot, DOT, COMMA)
         MAKE_TAP_SHIFT(ts_colon, COLON, SEMICOLON)
@@ -110,7 +94,7 @@
 &none &kp        Q &kp       F &kp       W &kp         P &kp B    &kp K &kp         L  &kp       U &kp       Y &kp  GRAVE   &none
 &none &bhm LCTRL A &bhm RALT R &bhm LCMD S &bhm LSHIFT T &kp G    &kp M &bhm LSHIFT N  &bhm LCMD E &bhm RALT I &bhm LCTRL O &none
 &none &kp        X &kp       V &kp       C &mt   LA(X) Z &kp D    &kp J &kp         H  &ts_dot     &ts_colon   &ts_qm       &none
-             &lt NUMBERS TAB &lt_hyper 0 SPACE &lt MEDIA ESC    &lt SYMBOLS RET &lt_hyper 0 BSPC &kp APOS
+                 &lt NUMBERS TAB &lt HYPER SPACE &lt MEDIA ESC    &lt SYMBOLS RET &lt_hyper 0 BSPC &kp APOS
             >;
         };
 
@@ -134,10 +118,10 @@
 
         hyper_layer {
             bindings = <
-&none &none     &kp PREV_TAB &kp NEXT_TAB &kp HY(A) &kp HY(B)     &kp HY(M) &prev_space  &kp HY(UP)   &next_space   &none     &none
-&none &kp HY(C) &kp HY(D)    &kp HY(E)    &kp HY(F) &kp HY(G)     &kp HY(N) &kp HY(LEFT) &kp HY(DOWN) &kp HY(RIGHT) &none     &none
-&none &kp HY(H) &kp HY(I)    &kp HY(J)    &kp HY(K) &kp HY(L)     &kp HY(O) &kp HY(P)    &kp HY(Q)    &kp HY(R)     &kp HY(S) &none
-                             &none        &kp GRAVE &kp TAB       &kp HY(X) &kp HY(Y)    &kp HY(Z)
+&none &none     &kp PREV_TAB &kp NEXT_TAB &kp HY(A) &kp HY(B)     &kp HY(M) &kp PREV_SPACE &kp HY(UP)   &kp NEXT_SPACE &none     &none
+&none &kp HY(C) &kp HY(D)    &kp HY(E)    &kp HY(F) &kp HY(G)     &kp HY(N) &kp HY(LEFT)   &kp HY(DOWN) &kp HY(RIGHT)  &none     &none
+&none &kp HY(H) &kp HY(I)    &kp HY(J)    &kp HY(K) &kp HY(L)     &kp HY(O) &kp HY(P)      &kp HY(Q)    &kp HY(R)      &kp HY(S) &none
+                             &none        &kp GRAVE &kp TAB       &kp HY(X) &kp HY(Y)      &kp HY(Z)
             >;
         };
 
