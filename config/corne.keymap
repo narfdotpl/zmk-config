@@ -127,10 +127,10 @@
 
         symbols_layer {
             bindings = <
-&none &kp PERCENT &kp AT    &kp HASH  &kp CARET      &kp PIPE        &trans &trans &trans &trans &trans &trans
-&none &kp DOLLAR  &ts_brc   &ts_bkt   &ts_par        &ts_lt          &trans &trans &trans &trans &trans &trans
-&none &kp AMPS    &kp MINUS &kp PLUS  &ts_slash      &kp ASTERISK    &trans &trans &trans &trans &trans &trans
-                            &kp EMOJI &kp UNDERSCORE &kp EQUAL       &trans &trans &trans
+&none &kp PERCENT &kp AT   &kp HASH  &kp PIPE       &kp CARET       &trans &trans &trans &trans &trans &trans
+&none &kp DOLLAR  &ts_brc  &ts_bkt   &ts_par        &ts_lt          &trans &trans &trans &trans &trans &trans
+&none &kp AMPS    &kp PLUS &kp MINUS &ts_slash      &kp ASTERISK    &trans &trans &trans &trans &trans &trans
+                           &kp EMOJI &kp UNDERSCORE &kp EQUAL       &trans &trans &trans
             >;
         };
 
