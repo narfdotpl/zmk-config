@@ -20,9 +20,9 @@ _Not everything is fully implemented yet_
 ![](images/layers/colemak-mods.png)
 
 
-### Hyper
+### Apps and windows
 
-![](images/layers/hyper.png)
+![](images/layers/apps.png)
 
 
 ### System

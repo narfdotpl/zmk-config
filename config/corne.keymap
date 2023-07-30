@@ -5,7 +5,7 @@
 // layers
 #define SYSTEM 1
 #define BLUETOOTH 2
-#define HYPER 3
+#define APPS 3
 #define SYMBOLS 4
 #define NUMBERS 5
 
@@ -38,9 +38,9 @@
             #binding-cells = <0>;
             wait-ms = <0>;
             bindings
-                = <&macro_press &mo HYPER &kp LCMD>
+                = <&macro_press &mo APPS &kp LCMD>
                 , <&macro_pause_for_release>
-                , <&macro_release &mo HYPER &kp LCMD>
+                , <&macro_release &mo APPS &kp LCMD>
                 ;
         };
     };
@@ -94,7 +94,7 @@
 &none &kp        Q &kp       F &kp       W &kp         P &kp B     &kp K &kp         L  &kp       U &kp       Y &kp  GRAVE   &none
 &none &bhm LCTRL A &bhm RALT R &bhm LCMD S &bhm LSHIFT T &kp G     &kp M &bhm LSHIFT N  &bhm LCMD E &bhm RALT I &bhm LCTRL O &none
 &none &kp        X &kp       V &kp       C &mt   LA(X) Z &kp D     &kp J &kp         H  &ts_dot     &ts_colon   &ts_qm       &none
-                 &lt NUMBERS TAB &lt HYPER SPACE &lt SYSTEM ESC    &lt SYMBOLS RET &lt_hyper 0 BSPC &kp APOS
+                 &lt NUMBERS TAB &lt APPS SPACE &lt SYSTEM ESC    &lt SYMBOLS RET &lt_hyper 0 BSPC &kp APOS
             >;
         };
 
