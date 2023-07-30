@@ -8,6 +8,8 @@
 #define APPS 3
 #define SYMBOLS 4
 #define NUMBERS 5
+#define NUMPAD 6
+#define F1_F12 7
 
 #define PREV_TAB LG(LS(LBKT))
 #define NEXT_TAB LG(LS(RBKT))
@@ -136,10 +138,10 @@
 
         numbers_layer {
             bindings = <
-&trans &trans &trans &trans &trans &trans    &trans &kp N7 &kp N8 &kp N9 &trans &trans
-&trans &trans &trans &trans &trans &trans    &trans &kp N4 &kp N5 &kp N6 &trans &trans
-&trans &trans &trans &trans &trans &trans    &trans &kp N1 &kp N2 &kp N3 &trans &trans
-                     &trans &trans &trans    &trans &kp N0 &kp DOT
+&trans &trans &trans &trans &trans &trans    &kp PLUS     &kp N7 &kp N8 &kp N9 &none &none
+&trans &trans &trans &trans &trans &trans    &kp MINUS    &kp N4 &kp N5 &kp N6 &none &none
+&trans &trans &trans &trans &trans &trans    &kp SLASH    &kp N1 &kp N2 &kp N3 &none &none
+  &trans &lt NUMPAD SPACE &lt F1_F12 EQUAL   &kp ASTERISK &kp N0 &kp DOT
             >;
         };
 
