@@ -15,7 +15,7 @@ _Not everything is fully implemented yet_
 ![](images/layers/base.png)
 
 
-### Colemak DH mods for Polish and Vim (Polemak?)
+### Colemak DH modifications for Vim and Polish (Polemak?)
 
 ![](images/layers/colemak-mods.png)
 
