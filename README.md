@@ -25,9 +25,9 @@ _Not everything is fully implemented yet_
 ![](images/layers/hyper.png)
 
 
-### Media
+### System
 
-![](images/layers/media.png)
+![](images/layers/system.png)
 
 
 ### Bluetooth

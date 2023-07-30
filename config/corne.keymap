@@ -3,7 +3,7 @@
 #include <dt-bindings/zmk/bt.h>
 
 // layers
-#define MEDIA 1
+#define SYSTEM 1
 #define BLUETOOTH 2
 #define HYPER 3
 #define SYMBOLS 4
@@ -91,14 +91,14 @@
         // layers on thumbs
         default_layer {
             bindings = <
-&none &kp        Q &kp       F &kp       W &kp         P &kp B    &kp K &kp         L  &kp       U &kp       Y &kp  GRAVE   &none
-&none &bhm LCTRL A &bhm RALT R &bhm LCMD S &bhm LSHIFT T &kp G    &kp M &bhm LSHIFT N  &bhm LCMD E &bhm RALT I &bhm LCTRL O &none
-&none &kp        X &kp       V &kp       C &mt   LA(X) Z &kp D    &kp J &kp         H  &ts_dot     &ts_colon   &ts_qm       &none
-                 &lt NUMBERS TAB &lt HYPER SPACE &lt MEDIA ESC    &lt SYMBOLS RET &lt_hyper 0 BSPC &kp APOS
+&none &kp        Q &kp       F &kp       W &kp         P &kp B     &kp K &kp         L  &kp       U &kp       Y &kp  GRAVE   &none
+&none &bhm LCTRL A &bhm RALT R &bhm LCMD S &bhm LSHIFT T &kp G     &kp M &bhm LSHIFT N  &bhm LCMD E &bhm RALT I &bhm LCTRL O &none
+&none &kp        X &kp       V &kp       C &mt   LA(X) Z &kp D     &kp J &kp         H  &ts_dot     &ts_colon   &ts_qm       &none
+                 &lt NUMBERS TAB &lt HYPER SPACE &lt SYSTEM ESC    &lt SYMBOLS RET &lt_hyper 0 BSPC &kp APOS
             >;
         };
 
-        media_layer {
+        system_layer {
             bindings = <
 &trans &kp       LG(Q) &kp      LG(F) &kp      LG(W) &kp        LG(P) &kp    LG(B)     &kp LC(C_BRI_DEC) &kp LC(C_BRI_INC) &kp UP           &none      &none &none
 &trans &mt LCTRL LG(A) &mt LALT LG(R) &mt LCMD LG(S) &mt LSHIFT LG(T) &kp    LG(G)     &caps_word        &kp LEFT          &kp DOWN         &kp RIGHT  &none &none
