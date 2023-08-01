@@ -71,9 +71,10 @@
         };
 
         // interpunction
-        MAKE_TAP_SHIFT(ts_dot, DOT, COMMA)
+        MAKE_TAP_SHIFT(ts_dot, DOT, QUESTION)
+        MAKE_TAP_SHIFT(ts_comma, COMMA, EXCLAMATION)
         MAKE_TAP_SHIFT(ts_colon, COLON, SEMICOLON)
-        MAKE_TAP_SHIFT(ts_qm, QUESTION, EXCLAMATION)
+        MAKE_TAP_SHIFT(ts_quote, DOUBLE_QUOTES, SINGLE_QUOTE)
 
         // brackets
         MAKE_TAP_SHIFT(ts_par, LPAR, RPAR)
@@ -95,8 +96,8 @@
             bindings = <
 &none &kp        Q &kp       F &kp       W &kp         P &kp B     &kp K &kp         L  &kp       U &kp       Y &kp  GRAVE   &none
 &none &bhm LCTRL A &bhm RALT R &bhm LCMD S &bhm LSHIFT T &kp G     &kp M &bhm LSHIFT N  &bhm LCMD E &bhm RALT I &bhm LCTRL O &none
-&none &kp        X &kp       V &kp       C &mt   LA(X) Z &kp D     &kp J &kp         H  &ts_dot     &ts_colon   &ts_qm       &none
-                 &lt NUMBERS TAB &lt APPS SPACE &lt SYSTEM ESC    &lt SYMBOLS RET &lt_hyper 0 BSPC &kp APOS
+&none &kp        X &kp       V &kp       C &mt   LA(X) Z &kp D     &kp J &kp         H  &ts_dot     &ts_comma   &ts_colon    &none
+                 &lt NUMBERS TAB &lt APPS SPACE &lt SYSTEM ESC     &lt SYMBOLS RET &lt_hyper 0 BSPC &ts_quote
             >;
         };
 
