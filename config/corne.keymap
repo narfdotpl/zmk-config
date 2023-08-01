@@ -97,7 +97,7 @@
 &none &kp        Q &kp       F &kp       W &kp         P &kp B     &kp K &kp         L  &kp       U &kp       Y &kp  GRAVE   &none
 &none &bhm LCTRL A &bhm RALT R &bhm LCMD S &bhm LSHIFT T &kp G     &kp M &bhm LSHIFT N  &bhm LCMD E &bhm RALT I &bhm LCTRL O &none
 &none &kp        X &kp       V &kp       C &mt   LA(X) Z &kp D     &kp J &kp         H  &ts_dot     &ts_comma   &ts_colon    &none
-                 &lt NUMBERS TAB &lt APPS SPACE &lt SYSTEM ESC     &lt SYMBOLS RET &lt_hyper 0 BSPC &ts_quote
+                 &lt NUMBERS ESC &lt APPS SPACE &lt SYSTEM ENTER     &lt SYMBOLS TAB &lt_hyper 0 BSPC &ts_quote
             >;
         };
 
