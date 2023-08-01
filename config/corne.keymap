@@ -33,9 +33,9 @@
 
 / {
     macros {
-        // hold to enable hyper layer and left command at the same time
-        hyper_and_lcmd: hyper_and_lcmd {
-            label = "hyper_and_lcmd";
+        // hold to enable apps layer and left command at the same time
+        apps_and_lcmd: apps_and_lcmd {
+            label = "apps_and_lcmd";
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
             wait-ms = <0>;
@@ -59,15 +59,15 @@
             bindings = <&kp>, <&kp>;
         };
 
-        // `&lt` using `&hyper_and_lcmd`
+        // `&lt` using `&apps_and_lcmd`
         // first parameter is not used, so you can pass anything, e.g. 0
-        lt_hyper: lt_hyper {
+        lt_apps: lt_apps {
             compatible = "zmk,behavior-hold-tap";
-            label = "lt_hyper";
+            label = "lt_apps";
             #binding-cells = <2>;
             flavor = "tap-preferred";
             tapping-term-ms = <200>;
-            bindings = <&hyper_and_lcmd>, <&kp>;
+            bindings = <&apps_and_lcmd>, <&kp>;
         };
 
         // interpunction
@@ -97,7 +97,7 @@
 &none &kp        Q &kp       F &kp       W &kp         P &kp B     &kp K &kp         L  &kp       U &kp       Y &kp  GRAVE   &none
 &none &bhm LCTRL A &bhm RALT R &bhm LCMD S &bhm LSHIFT T &kp G     &kp M &bhm LSHIFT N  &bhm LCMD E &bhm RALT I &bhm LCTRL O &none
 &none &kp        X &kp       V &kp       C &mt   LA(X) Z &kp D     &kp J &kp         H  &ts_dot     &ts_comma   &ts_colon    &none
-                 &lt NUMBERS ESC &lt APPS SPACE &lt SYSTEM ENTER     &lt SYMBOLS TAB &lt_hyper 0 BSPC &ts_quote
+                 &lt NUMBERS ESC &lt APPS SPACE &lt SYSTEM ENTER     &lt SYMBOLS TAB &lt_apps 0 BSPC &ts_quote
             >;
         };
 
@@ -119,7 +119,7 @@
             >;
         };
 
-        hyper_layer {
+        apps_layer {
             bindings = <
 &none &kp HY(T) &kp PREV_TAB &kp NEXT_TAB &kp HY(A) &kp HY(B)     &kp HY(M) &kp PREV_SPACE &kp HY(UP)   &kp NEXT_SPACE &none     &none
 &none &kp HY(C) &kp HY(D)    &kp HY(E)    &kp HY(F) &kp HY(G)     &kp HY(N) &kp HY(LEFT)   &kp HY(DOWN) &kp HY(RIGHT)  &none     &none
