@@ -120,7 +120,7 @@
 
         hyper_layer {
             bindings = <
-&none &none     &kp PREV_TAB &kp NEXT_TAB &kp HY(A) &kp HY(B)     &kp HY(M) &kp PREV_SPACE &kp HY(UP)   &kp NEXT_SPACE &none     &none
+&none &kp HY(T) &kp PREV_TAB &kp NEXT_TAB &kp HY(A) &kp HY(B)     &kp HY(M) &kp PREV_SPACE &kp HY(UP)   &kp NEXT_SPACE &none     &none
 &none &kp HY(C) &kp HY(D)    &kp HY(E)    &kp HY(F) &kp HY(G)     &kp HY(N) &kp HY(LEFT)   &kp HY(DOWN) &kp HY(RIGHT)  &none     &none
 &none &kp HY(H) &kp HY(I)    &kp HY(J)    &kp HY(K) &kp HY(L)     &kp HY(O) &kp HY(P)      &kp HY(Q)    &kp HY(R)      &kp HY(S) &none
                              &none        &kp GRAVE &kp TAB       &kp HY(X) &kp HY(Y)      &kp HY(Z)
