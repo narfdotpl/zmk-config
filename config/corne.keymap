@@ -59,15 +59,16 @@
             bindings = <&kp>, <&kp>;
         };
 
-        // `&lt` using `&apps_and_lcmd`
-        // first parameter is not used, so you can pass anything, e.g. 0
-        lt_apps: lt_apps {
+        // `&lt` using `&apps_and_lcmd` and `&ts_bs_del`
+        // parameters are not used, so you can pass anything, e.g. 0
+        MAKE_TAP_SHIFT(ts_bs_del, BACKSPACE, DELETE)
+        bs_del_apps: bs_del_apps {
             compatible = "zmk,behavior-hold-tap";
-            label = "lt_apps";
+            label = "bs_del_apps";
             #binding-cells = <2>;
             flavor = "tap-preferred";
             tapping-term-ms = <200>;
-            bindings = <&apps_and_lcmd>, <&kp>;
+            bindings = <&apps_and_lcmd>, <&ts_bs_del>;
         };
 
         // interpunction
@@ -97,7 +98,7 @@
 &none &kp        Q &kp       F &kp       W &kp         P &kp B     &kp K &kp         L  &kp       U &kp       Y &kp  GRAVE   &none
 &none &bhm LCTRL A &bhm RALT R &bhm LCMD S &bhm LSHIFT T &kp G     &kp M &bhm LSHIFT N  &bhm LCMD E &bhm RALT I &bhm LCTRL O &none
 &none &kp        X &kp       V &kp       C &mt   LA(X) Z &kp D     &kp J &kp         H  &ts_dot     &ts_comma   &ts_colon    &none
-                 &lt NUMBERS ESC &lt APPS SPACE &lt SYSTEM ENTER     &lt SYMBOLS TAB &lt_apps 0 BSPC &ts_quote
+                 &lt NUMBERS ESC &lt APPS SPACE &lt SYSTEM ENTER     &lt SYMBOLS TAB &bs_del_apps 0 0 &ts_quote
             >;
         };
 
