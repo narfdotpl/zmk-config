@@ -35,7 +35,7 @@ _Not everything is fully implemented yet_
 ![](images/layers/bluetooth.png)
 
 
-### Symbols
+### Symbols and code
 
 ![](images/layers/symbols.png)
 
