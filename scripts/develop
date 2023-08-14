@@ -3,4 +3,4 @@
 ./scripts/start
 
 pyenv activate zmk-config
-ag -l | peat './scripts/build && ./scripts/flash'
+ag -l | peat 'time (./scripts/build && ./scripts/flash)'
