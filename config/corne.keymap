@@ -93,11 +93,19 @@
             mods = <(MOD_LGUI)>;
         };
 
+        // tap, shift+tap, hold
+        bs_del_shift: bs_del_shift {
+            compatible = "zmk,behavior-mod-morph";
+            label = "bs_del_shift";
+            #binding-cells = <0>;
+            bindings = <&mt LSHIFT BACKSPACE>, <&kp DELETE>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+
         // interpunction
         MAKE_TAP_SHIFT(ts_dot, DOT, QUESTION)
         MAKE_TAP_SHIFT(ts_comma, COMMA, EXCLAMATION)
         MAKE_TAP_SHIFT(ts_colon, COLON, SEMICOLON)
-        MAKE_TAP_SHIFT(ts_quote, DOUBLE_QUOTES, SINGLE_QUOTE)
 
         // brackets
         MAKE_TAP_SHIFT(ts_par, LPAR, RPAR)
@@ -106,7 +114,6 @@
         MAKE_TAP_SHIFT(ts_lt, LT, GT)
 
         // other
-        MAKE_TAP_SHIFT(ts_bs_del, BACKSPACE, DELETE)
         MAKE_TAP_SHIFT(ts_slash, SLASH, BACKSLASH)
     };
 
@@ -122,7 +129,7 @@
 &none &kp      Q &kp      F &kp      W &kp       P &kp B     &kp K &kp      L &kp      U &kp      Y &kp GRAVE  &none
 &none &bhm HR4 A &bhm HR3 R &bhm HR2 S &bhm HR1  T &kp G     &kp M &bhm HR1 N &bhm HR2 E &bhm HR3 I &bhm HR4 O &none
 &none &kp      X &kp      V &kp      C &mt LA(X) Z &kp D     &kp J &kp      H &ts_dot    &ts_comma  &ts_colon  &none
-                 &lt NUMBERS ESC &spc_bs_apps 0 0 &lt SYSTEM ENTER     &lt SYMBOLS TAB   &ts_bs_del &ts_quote
+                 &lt NUMBERS ESC &spc_bs_apps 0 0 &lt SYSTEM ENTER     &lt SYMBOLS TAB   &bs_del_shift &mt RALT SINGLE_QUOTE
             >;
         };
 
