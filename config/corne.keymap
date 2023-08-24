@@ -65,27 +65,32 @@
             bindings = <&kp>, <&kp>;
         };
 
-        // `&lt` using `&apps_and_lcmd` and `&ts_bs_del`
-        // parameters are not used, so you can pass anything, e.g. 0
-        MAKE_TAP_SHIFT(ts_bs_del, BACKSPACE, DELETE)
-        bs_del_apps: bs_del_apps {
+        // `&lt` using `&apps_and_lcmd` and `&ts_spc_bs`
+        // parameters are not used, so you can pass anything, e.g. 0 0
+        MAKE_TAP_SHIFT(ts_spc_bs, SPACE, BACKSPACE)
+        spc_bs_apps: spc_bs_apps {
             compatible = "zmk,behavior-hold-tap";
-            label = "bs_del_apps";
+            label = "spc_bs_apps";
             #binding-cells = <2>;
             flavor = "tap-preferred";
             tapping-term-ms = <200>;
-            bindings = <&apps_and_lcmd>, <&ts_bs_del>;
+            bindings = <&apps_and_lcmd>, <&ts_spc_bs>;
         };
 
-        // see above
-        MAKE_TAP_SHIFT(ts_spc_bs, SPACE, BACKSPACE)
-        lt_spc_bs: lt_spc_bs {
-            compatible = "zmk,behavior-hold-tap";
-            label = "lt_spc_bs";
-            #binding-cells = <2>;
-            flavor = "tap-preferred";
-            tapping-term-ms = <200>;
-            bindings = <&mo>, <&ts_spc_bs>;
+        // apps layer also holds down CMD, so I use a mod-morph to escape it
+        prev_space: prev_space {
+            compatible = "zmk,behavior-mod-morph";
+            label = "prev_space";
+            #binding-cells = <0>;
+            bindings = <&kp PREV_SPACE>, <&kp PREV_SPACE>;
+            mods = <(MOD_LGUI)>;
+        };
+        next_space: next_space {
+            compatible = "zmk,behavior-mod-morph";
+            label = "next_space";
+            #binding-cells = <0>;
+            bindings = <&kp NEXT_SPACE>, <&kp NEXT_SPACE>;
+            mods = <(MOD_LGUI)>;
         };
 
         // interpunction
@@ -100,6 +105,8 @@
         MAKE_TAP_SHIFT(ts_brc, LBRC, RBRC)
         MAKE_TAP_SHIFT(ts_lt, LT, GT)
 
+        // other
+        MAKE_TAP_SHIFT(ts_bs_del, BACKSPACE, DELETE)
         MAKE_TAP_SHIFT(ts_slash, SLASH, BACKSLASH)
     };
 
@@ -115,7 +122,7 @@
 &none &kp      Q &kp      F &kp      W &kp       P &kp B     &kp K &kp      L &kp      U &kp      Y &kp GRAVE  &none
 &none &bhm HR4 A &bhm HR3 R &bhm HR2 S &bhm HR1  T &kp G     &kp M &bhm HR1 N &bhm HR2 E &bhm HR3 I &bhm HR4 O &none
 &none &kp      X &kp      V &kp      C &mt LA(X) Z &kp D     &kp J &kp      H &ts_dot    &ts_comma  &ts_colon  &none
-                 &lt NUMBERS ESC &lt_spc_bs APPS 0 &lt SYSTEM ENTER     &lt SYMBOLS TAB &bs_del_apps 0 0 &ts_quote
+                 &lt NUMBERS ESC &spc_bs_apps 0 0 &lt SYSTEM ENTER     &lt SYMBOLS TAB   &ts_bs_del &ts_quote
             >;
         };
 
@@ -139,10 +146,10 @@
 
         apps_layer {
             bindings = <
-&none &kp HY(T) &kp PREV_TAB &kp NEXT_TAB &kp HY(A) &kp HY(B)     &kp HY(M) &kp PREV_SPACE &kp HY(UP)   &kp NEXT_SPACE &none     &none
-&none &kp HY(C) &kp HY(D)    &kp HY(E)    &kp HY(F) &kp HY(G)     &kp HY(N) &kp HY(LEFT)   &kp HY(DOWN) &kp HY(RIGHT)  &none     &none
-&none &kp HY(H) &kp HY(I)    &kp HY(J)    &kp HY(K) &kp HY(L)     &kp HY(O) &kp HY(P)      &kp HY(Q)    &kp HY(R)      &kp HY(S) &none
-                             &none        &kp GRAVE &kp TAB       &kp HY(X) &kp HY(Y)      &kp HY(Z)
+&none &kp HY(T) &kp PREV_TAB &kp NEXT_TAB &kp HY(A) &kp HY(B)     &kp HY(M) &prev_space  &kp HY(UP)   &next_space   &none     &none
+&none &kp HY(C) &kp HY(D)    &kp HY(E)    &kp HY(F) &kp HY(G)     &kp HY(N) &kp HY(LEFT) &kp HY(DOWN) &kp HY(RIGHT) &none     &none
+&none &kp HY(H) &kp HY(I)    &kp HY(J)    &kp HY(K) &kp HY(L)     &kp HY(O) &kp HY(P)    &kp HY(Q)    &kp HY(R)     &kp HY(S) &none
+                             &kp GRAVE    &none     &kp TAB       &kp HY(X) &kp HY(Y)    &kp HY(Z)
             >;
         };
 
