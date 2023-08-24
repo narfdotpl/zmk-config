@@ -102,6 +102,15 @@
             mods = <(MOD_LSFT|MOD_RSFT)>;
         };
 
+        // alt+d = alt+x
+        alt_d: alt_d {
+            compatible = "zmk,behavior-mod-morph";
+            label = "alt_d";
+            #binding-cells = <0>;
+            bindings = <&kp D>, <&kp RA(X)>;
+            mods = <(MOD_RALT)>;
+        };
+
         // interpunction
         MAKE_TAP_SHIFT(ts_dot, DOT, QUESTION)
         MAKE_TAP_SHIFT(ts_comma, COMMA, EXCLAMATION)
@@ -128,7 +137,7 @@
             bindings = <
 &none &kp      Q &kp      F &kp      W &kp       P &kp B     &kp K &kp      L &kp      U &kp      Y &kp GRAVE  &none
 &none &bhm HR4 A &bhm HR3 R &bhm HR2 S &bhm HR1  T &kp G     &kp M &bhm HR1 N &bhm HR2 E &bhm HR3 I &bhm HR4 O &none
-&none &kp      X &kp      V &kp      C &mt LA(X) Z &kp D     &kp J &kp      H &ts_dot    &ts_comma  &ts_colon  &none
+&none &kp      X &kp      V &kp      C &kp       Z &alt_d    &kp J &kp      H &ts_dot    &ts_comma  &ts_colon  &none
                  &lt NUMBERS ESC &spc_bs_apps 0 0 &lt SYSTEM ENTER     &lt SYMBOLS TAB   &bs_del_shift &mt RALT SINGLE_QUOTE
             >;
         };
