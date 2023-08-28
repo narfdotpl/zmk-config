@@ -172,8 +172,8 @@
         symbols_layer {
             bindings = <
 &none &kp PERCENT &kp AT   &kp HASH  &kp PIPE       &kp CARET       &none &none              &kp      LA(UP)   &none             &none   &none
-&none &kp DOLLAR  &ts_brc  &ts_bkt   &ts_par        &ts_lt          &none &bhm HR1 LG(LBKT)  &bhm HR2 LA(DOWN) &bhm HR3 LG(RBKT) &kp HR4 &none
-&none &kp AMPS    &kp PLUS &kp MINUS &ts_slash      &kp ASTERISK    &none &kp      LG(SLASH) &none             &none             &none   &none
+&none &kp DOLLAR  &kp LBKT &kp RBKT  &kp LPAR       &kp RPAR        &none &bhm HR1 LG(LBKT)  &bhm HR2 LA(DOWN) &bhm HR3 LG(RBKT) &kp HR4 &none
+&none &kp AMPS    &kp LBRC &kp RBRC  &kp LT         &kp GT          &none &kp      LG(SLASH) &none             &none             &none   &none
                            &kp EMOJI &kp UNDERSCORE &kp EQUAL       &none &none              &none
             >;
         };
@@ -182,7 +182,7 @@
             bindings = <
 &trans &trans &trans &trans &trans &trans    &kp PLUS     &kp N7 &kp N8 &kp N9 &none &none
 &trans &trans &trans &trans &trans &trans    &kp MINUS    &kp N4 &kp N5 &kp N6 &none &none
-&trans &trans &trans &trans &trans &trans    &kp SLASH    &kp N1 &kp N2 &kp N3 &none &none
+&trans &trans &trans &trans &trans &trans    &ts_slash    &kp N1 &kp N2 &kp N3 &none &none
   &trans &lt NUMPAD SPACE &lt F1_F12 EQUAL   &kp ASTERISK &kp N0 &kp DOT
             >;
         };

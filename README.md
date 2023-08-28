@@ -7,9 +7,6 @@ _Early WIP_
 
 ## Layers
 
-_Not everything is fully implemented yet_
-
-
 ### Base
 
 ![](images/layers/base.png)
