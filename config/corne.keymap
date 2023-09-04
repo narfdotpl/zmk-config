@@ -176,7 +176,7 @@
             bindings = <
 &kp PERCENT &kp AT   &kp HASH  &kp PIPE       &kp CARET       &none &none              &kp      LA(UP)   &none             &none
 &kp DOLLAR  &kp LBKT &kp RBKT  &kp LPAR       &kp RPAR        &none &bhm HR1 LG(LBKT)  &bhm HR2 LA(DOWN) &bhm HR3 LG(RBKT) &kp HR4
-&kp AMPS    &kp LBRC &kp RBRC  &kp LT         &kp GT          &none &kp      LG(SLASH) &none             &none             &none
+&kp AMPS    &kp LBRC &kp RBRC  &kp LT         &kp GT          &none &kp      LG(SLASH) &kp QUESTION      &kp EXCLAMATION   &kp SEMICOLON
                      &kp EMOJI &kp UNDERSCORE &kp EQUAL       &none &none              &none
             >;
         };
