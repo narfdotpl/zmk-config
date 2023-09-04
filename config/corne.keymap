@@ -38,6 +38,10 @@
 
 
 / {
+    chosen {
+        zmk,matrix_transform = &five_column_transform;
+    };
+
     macros {
         // hold to enable apps layer and left command at the same time
         apps_and_lcmd: apps_and_lcmd {
@@ -130,96 +134,95 @@
         compatible = "zmk,keymap";
 
         // Colemak narf (my own flavour of Colemak DH with affordances for Polish and Vim)
-        // empty side columns (pretending it's a 3x5, not a 3x6 Corne)
         // home row mods (inspired by Miryoku)
         // layers on thumbs
         default_layer {
             bindings = <
-&none &kp      Q &kp      F &kp      W &kp       P &kp B     &kp K &kp      L &kp      U &kp      Y &kp GRAVE  &none
-&none &bhm HR4 A &bhm HR3 R &bhm HR2 S &bhm HR1  T &kp G     &kp M &bhm HR1 N &bhm HR2 E &bhm HR3 I &bhm HR4 O &none
-&none &kp      X &kp      V &kp      C &kp       Z &alt_d    &kp J &kp      H &ts_dot    &ts_comma  &ts_colon  &none
-                 &lt NUMBERS ESC &spc_bs_apps 0 0 &lt SYSTEM ENTER     &lt SYMBOLS TAB   &bs_del_shift &mt RALT SINGLE_QUOTE
+&kp      Q &kp      F &kp      W &kp       P &kp B     &kp K &kp      L &kp      U &kp      Y &kp GRAVE
+&bhm HR4 A &bhm HR3 R &bhm HR2 S &bhm HR1  T &kp G     &kp M &bhm HR1 N &bhm HR2 E &bhm HR3 I &bhm HR4 O
+&kp      X &kp      V &kp      C &kp       Z &alt_d    &kp J &kp      H &ts_dot    &ts_comma  &ts_colon
+&lt NUMBERS ESC &spc_bs_apps 0 0 &lt SYSTEM ENTER      &lt SYMBOLS TAB &bs_del_shift &mt RALT SINGLE_QUOTE
             >;
         };
 
         system_layer {
             bindings = <
-&trans &kp      LG(Q) &kp      LG(F) &kp      LG(W) &kp      LG(P) &kp    LG(B)     &kp LC(C_BRI_DEC) &kp LC(C_BRI_INC) &kp UP           &none      &none &none
-&trans &bhm HR4 LG(A) &bhm HR3 LG(R) &bhm HR2 LG(S) &bhm HR1 LG(T) &kp LG(LS(T))    &kp CAPSLOCK      &kp LEFT          &kp DOWN         &kp RIGHT  &none &none
-&trans &kp      LG(X) &kp      LG(V) &kp      LG(C) &kp      LG(Z) &kp LG(LS(Z))    &none             &kp C_PREV        &kp C_PLAY_PAUSE &kp C_NEXT &none &none
-                                     &none          &mo BLUETOOTH  &none            &kp K_MUTE        &kp C_VOL_DN      &kp C_VOL_UP
+&kp      LG(Q) &kp      LG(F) &kp      LG(W) &kp      LG(P) &kp    LG(B)     &kp LC(C_BRI_DEC) &kp LC(C_BRI_INC) &kp UP           &none      &none
+&bhm HR4 LG(A) &bhm HR3 LG(R) &bhm HR2 LG(S) &bhm HR1 LG(T) &kp LG(LS(T))    &kp CAPSLOCK      &kp LEFT          &kp DOWN         &kp RIGHT  &none
+&kp      LG(X) &kp      LG(V) &kp      LG(C) &kp      LG(Z) &kp LG(LS(Z))    &none             &kp C_PREV        &kp C_PLAY_PAUSE &kp C_NEXT &none
+                              &none          &mo BLUETOOTH  &none            &kp K_MUTE        &kp C_VOL_DN      &kp C_VOL_UP
             >;
         };
 
         bluetooth_layer {
             bindings = <
-&none &none &none &none       &none &none    &none        &none        &none        &none        &none &none
-&none &none &none &none       &none &none    &bt BT_SEL 0 &bt BT_SEL 1 &bt BT_SEL 2 &bt BT_SEL 3 &none &none
-&none &none &none &none       &none &none    &none        &none        &none        &none        &none &none
-                  &bootloader &none &none    &bt BT_CLR   &none        &bootloader
+&none &none &none       &none &none    &none        &none        &none        &none        &none
+&none &none &none       &none &none    &bt BT_SEL 0 &bt BT_SEL 1 &bt BT_SEL 2 &bt BT_SEL 3 &none
+&none &none &none       &none &none    &none        &none        &none        &none        &none
+            &bootloader &none &none    &bt BT_CLR   &none        &bootloader
             >;
         };
 
         apps_layer {
             bindings = <
-&none &kp HY(T) &kp PREV_TAB &kp NEXT_TAB &kp HY(A) &kp HY(B)     &kp HY(M) &prev_space  &kp HY(UP)   &next_space   &none     &none
-&none &kp HY(C) &kp HY(D)    &kp HY(E)    &kp HY(F) &kp HY(G)     &kp HY(N) &kp HY(LEFT) &kp HY(DOWN) &kp HY(RIGHT) &none     &none
-&none &kp HY(H) &kp HY(I)    &kp HY(J)    &kp HY(K) &kp HY(L)     &kp HY(O) &kp HY(P)    &kp HY(Q)    &kp HY(R)     &kp HY(S) &none
-                             &kp GRAVE    &none     &kp TAB       &kp HY(X) &kp HY(Y)    &kp HY(Z)
+&kp HY(T) &kp PREV_TAB &kp NEXT_TAB &kp HY(A) &kp HY(B)     &kp HY(M) &prev_space  &kp HY(UP)   &next_space   &none
+&kp HY(C) &kp HY(D)    &kp HY(E)    &kp HY(F) &kp HY(G)     &kp HY(N) &kp HY(LEFT) &kp HY(DOWN) &kp HY(RIGHT) &none
+&kp HY(H) &kp HY(I)    &kp HY(J)    &kp HY(K) &kp HY(L)     &kp HY(O) &kp HY(P)    &kp HY(Q)    &kp HY(R)     &kp HY(S)
+                       &kp GRAVE    &none     &kp TAB       &kp HY(X) &kp HY(Y)    &kp HY(Z)
             >;
         };
 
         symbols_layer {
             bindings = <
-&none &kp PERCENT &kp AT   &kp HASH  &kp PIPE       &kp CARET       &none &none              &kp      LA(UP)   &none             &none   &none
-&none &kp DOLLAR  &kp LBKT &kp RBKT  &kp LPAR       &kp RPAR        &none &bhm HR1 LG(LBKT)  &bhm HR2 LA(DOWN) &bhm HR3 LG(RBKT) &kp HR4 &none
-&none &kp AMPS    &kp LBRC &kp RBRC  &kp LT         &kp GT          &none &kp      LG(SLASH) &none             &none             &none   &none
-                           &kp EMOJI &kp UNDERSCORE &kp EQUAL       &none &none              &none
+&kp PERCENT &kp AT   &kp HASH  &kp PIPE       &kp CARET       &none &none              &kp      LA(UP)   &none             &none
+&kp DOLLAR  &kp LBKT &kp RBKT  &kp LPAR       &kp RPAR        &none &bhm HR1 LG(LBKT)  &bhm HR2 LA(DOWN) &bhm HR3 LG(RBKT) &kp HR4
+&kp AMPS    &kp LBRC &kp RBRC  &kp LT         &kp GT          &none &kp      LG(SLASH) &none             &none             &none
+                     &kp EMOJI &kp UNDERSCORE &kp EQUAL       &none &none              &none
             >;
         };
 
         numbers_layer {
             bindings = <
-&trans &trans &trans &trans &trans &trans    &kp PLUS     &kp N7 &kp N8 &kp N9 &none &none
-&trans &trans &trans &trans &trans &trans    &kp MINUS    &kp N4 &kp N5 &kp N6 &none &none
-&trans &trans &trans &trans &trans &trans    &ts_slash    &kp N1 &kp N2 &kp N3 &none &none
-  &trans &lt NUMPAD SPACE &lt F1_F12 EQUAL   &kp ASTERISK &kp N0 &kp DOT
+&trans &trans &trans &trans &trans    &kp PLUS     &kp N7 &kp N8 &kp N9 &none
+&trans &trans &trans &trans &trans    &kp MINUS    &kp N4 &kp N5 &kp N6 &none
+&trans &trans &trans &trans &trans    &ts_slash    &kp N1 &kp N2 &kp N3 &none
+&trans &lt NUMPAD SPACE &lt F1_F12 EQUAL   &kp ASTERISK &kp N0 &kp DOT
             >;
         };
 
         numpad_layer {
             bindings = <
-&trans &trans &trans &trans &trans &trans    &trans &kp KP_N7 &kp KP_N8 &kp KP_N9 &trans &trans
-&trans &trans &trans &trans &trans &trans    &trans &kp KP_N4 &kp KP_N5 &kp KP_N6 &trans &trans
-&trans &trans &trans &trans &trans &trans    &trans &kp KP_N1 &kp KP_N2 &kp KP_N3 &trans &trans
-                     &trans &trans &trans    &trans &kp KP_N0 &trans
+&trans &trans &trans &trans &trans    &trans &kp KP_N7 &kp KP_N8 &kp KP_N9 &trans
+&trans &trans &trans &trans &trans    &trans &kp KP_N4 &kp KP_N5 &kp KP_N6 &trans
+&trans &trans &trans &trans &trans    &trans &kp KP_N1 &kp KP_N2 &kp KP_N3 &trans
+              &trans &trans &trans    &trans &kp KP_N0 &trans
             >;
         };
 
         f1_f12_layer {
             bindings = <
-&none &none &none &none &none &none    &none &kp F7 &kp F8 &kp F9 &kp F12 &none
-&none &none &none &none &none &none    &none &kp F4 &kp F5 &kp F6 &kp F11 &none
-&none &none &none &none &none &none    &none &kp F1 &kp F2 &kp F3 &kp F10 &none
-                  &none &none &none    &none &none &none
+&none &none &none &none &none    &none &kp F7 &kp F8 &kp F9 &kp F12
+&none &none &none &none &none    &none &kp F4 &kp F5 &kp F6 &kp F11
+&none &none &none &none &none    &none &kp F1 &kp F2 &kp F3 &kp F10
+            &none &none &none    &none &none &none
             >;
         };
 
         trans_layer {
             bindings = <
-&trans &trans &trans &trans &trans &trans    &trans &trans &trans &trans &trans &trans
-&trans &trans &trans &trans &trans &trans    &trans &trans &trans &trans &trans &trans
-&trans &trans &trans &trans &trans &trans    &trans &trans &trans &trans &trans &trans
-                     &trans &trans &trans    &trans &trans &trans
+&trans &trans &trans &trans &trans    &trans &trans &trans &trans &trans
+&trans &trans &trans &trans &trans    &trans &trans &trans &trans &trans
+&trans &trans &trans &trans &trans    &trans &trans &trans &trans &trans
+              &trans &trans &trans    &trans &trans &trans
             >;
         };
 
         none_layer {
             bindings = <
-&none &none &none &none &none &none    &none &none &none &none &none &none
-&none &none &none &none &none &none    &none &none &none &none &none &none
-&none &none &none &none &none &none    &none &none &none &none &none &none
-                  &none &none &none    &none &none &none
+&none &none &none &none &none    &none &none &none &none &none
+&none &none &none &none &none    &none &none &none &none &none
+&none &none &none &none &none    &none &none &none &none &none
+            &none &none &none    &none &none &none
             >;
         };
     };
