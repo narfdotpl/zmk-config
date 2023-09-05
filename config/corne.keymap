@@ -37,6 +37,15 @@
     };
 
 
+// fixes "system layer not activating" perceived bug
+//
+// > triggers the hold behavior when the tapping-term-ms has expired or another key is pressed
+// > — https://zmk.dev/docs/behaviors/hold-tap#flavors
+&lt {
+    flavor = "hold-preferred";
+};
+
+
 / {
     chosen {
         zmk,matrix_transform = &five_column_transform;
