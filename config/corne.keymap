@@ -129,12 +129,6 @@
         MAKE_TAP_SHIFT(ts_comma, COMMA, EXCLAMATION)
         MAKE_TAP_SHIFT(ts_colon, COLON, SEMICOLON)
 
-        // brackets
-        MAKE_TAP_SHIFT(ts_par, LPAR, RPAR)
-        MAKE_TAP_SHIFT(ts_bkt, LBKT, RBKT)
-        MAKE_TAP_SHIFT(ts_brc, LBRC, RBRC)
-        MAKE_TAP_SHIFT(ts_lt, LT, GT)
-
         // other
         MAKE_TAP_SHIFT(ts_slash, SLASH, BACKSLASH)
     };
