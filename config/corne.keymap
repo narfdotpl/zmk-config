@@ -142,24 +142,22 @@
     keymap {
         compatible = "zmk,keymap";
 
-        // Colemak narf (my own flavour of Colemak DH with affordances for Polish and Vim)
-        // home row mods (inspired by Miryoku)
-        // layers on thumbs
+        // Colemak narf (my own flavour of Colemak DH with modifications for Vim and Polish (Polemak?))
         default_layer {
             bindings = <
-&kp      Q &kp      F &kp      W &kp       P &kp B     &kp K &kp      L &kp      U &kp      Y &kp GRAVE
-&bhm HR4 A &bhm HR3 R &bhm HR2 S &bhm HR1  T &kp G     &kp M &bhm HR1 N &bhm HR2 E &bhm HR3 I &bhm HR4 O
-&kp      X &kp      V &kp      C &kp       Z &alt_d    &kp J &kp      H &ts_dot    &ts_comma  &ts_colon
+&kp Q &kp      F &kp      W &kp      P &kp B     &kp K &kp      L &kp      U &kp      Y &kp GRAVE
+&kp A &bhm HR3 R &bhm HR2 S &bhm HR1 T &kp G     &kp M &bhm HR1 N &bhm HR2 E &bhm HR3 I &kp O
+&kp X &kp      V &kp      C &bhm HR4 Z &alt_d    &kp J &bhm HR4 H &ts_dot    &ts_comma  &ts_colon
 &lt NUMBERS ESC &spc_bs_apps 0 0 &lt SYSTEM ENTER      &lt SYMBOLS TAB &bs_del_shift &mt RALT SINGLE_QUOTE
             >;
         };
 
         system_layer {
             bindings = <
-&kp      LG(Q) &kp      LG(F) &kp      LG(W) &kp      LG(P) &kp    LG(B)     &kp LC(C_BRI_DEC) &kp LC(C_BRI_INC) &kp UP           &none      &none
-&bhm HR4 LG(A) &bhm HR3 LG(R) &bhm HR2 LG(S) &bhm HR1 LG(T) &kp LG(LS(T))    &kp CAPSLOCK      &kp LEFT          &kp DOWN         &kp RIGHT  &none
-&kp      LG(X) &kp      LG(V) &kp      LG(C) &kp      LG(Z) &kp LG(LS(Z))    &none             &kp C_PREV        &kp C_PLAY_PAUSE &kp C_NEXT &none
-                              &none          &mo BLUETOOTH  &none            &kp K_MUTE        &kp C_VOL_DN      &kp C_VOL_UP
+&kp LG(Q) &kp      LG(F) &kp      LG(W) &kp      LG(P) &kp    LG(B)     &kp LC(C_BRI_DEC) &kp LC(C_BRI_INC) &kp UP           &none      &none
+&kp LG(A) &bhm HR3 LG(R) &bhm HR2 LG(S) &bhm HR1 LG(T) &kp LG(LS(T))    &kp CAPSLOCK      &kp LEFT          &kp DOWN         &kp RIGHT  &none
+&kp LG(X) &kp      LG(V) &kp      LG(C) &bhm HR4 LG(Z) &kp LG(LS(Z))    &none             &kp C_PREV        &kp C_PLAY_PAUSE &kp C_NEXT &none
+                         &none          &mo BLUETOOTH  &none            &kp K_MUTE        &kp C_VOL_DN      &kp C_VOL_UP
             >;
         };
 
@@ -184,8 +182,8 @@
         symbols_layer {
             bindings = <
 &kp PERCENT &kp AT   &kp HASH  &kp PIPE       &kp CARET       &none &none              &kp      LA(UP)   &none             &none
-&kp DOLLAR  &kp LBKT &kp RBKT  &kp LPAR       &kp RPAR        &none &bhm HR1 LG(LBKT)  &bhm HR2 LA(DOWN) &bhm HR3 LG(RBKT) &kp HR4
-&kp AMPS    &kp LBRC &kp RBRC  &kp LT         &kp GT          &none &kp      LG(SLASH) &kp QUESTION      &kp EXCLAMATION   &kp SEMICOLON
+&kp DOLLAR  &kp LBKT &kp RBKT  &kp LPAR       &kp RPAR        &none &bhm HR1 LG(LBKT)  &bhm HR2 LA(DOWN) &bhm HR3 LG(RBKT) &none
+&kp AMPS    &kp LBRC &kp RBRC  &kp LT         &kp GT          &none &bhm HR4 LG(SLASH) &kp QUESTION      &kp EXCLAMATION   &kp SEMICOLON
                      &kp EMOJI &kp UNDERSCORE &kp EQUAL       &none &none              &none
             >;
         };
