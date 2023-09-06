@@ -2,8 +2,6 @@
 
 Configuration of my Corne keyboard.
 
-_Early WIP_
-
 
 ## Layers
 
