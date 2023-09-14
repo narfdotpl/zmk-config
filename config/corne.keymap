@@ -164,6 +164,7 @@
             >;
         };
 
+        // powered by hammerspoon: https://github.com/narfdotpl/dotfiles/blob/master/home/.hammerspoon/init.lua
         apps_layer {
             bindings = <
 &kp GRAVE &kp PREV_TAB &kp NEXT_TAB &kp HY(A) &kp HY(B)     &kp HY(M) &prev_space  &kp HY(UP)   &next_space   &none

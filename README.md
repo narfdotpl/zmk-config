@@ -19,6 +19,8 @@ Configuration of my Corne keyboard.
 
 ![](images/layers/apps.png)
 
+Powered by [Hammerspoon][].
+
 
 ### System
 
@@ -83,6 +85,7 @@ pip install peat
 Install [ZMK Tools][] VS Code plugin. ZMK commit hash at the time of writing: `7f9e9f8c`.
 
   [narf]: http://narf.pl
+  [Hammerspoon]: https://github.com/narfdotpl/dotfiles/blob/master/home/.hammerspoon/init.lua
   [User Setup]: https://zmk.dev/docs/user-setup
   [Toolchain Setup]: https://zmk.dev/docs/development/setup
   [ZMK Tools]: https://marketplace.visualstudio.com/items?itemName=spadin.zmk-tools
