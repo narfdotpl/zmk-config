@@ -45,6 +45,11 @@
     flavor = "hold-preferred";
 };
 
+// fixes "alt instead of apostrophe" bug
+&mt {
+    flavor = "tap-preferred";
+};
+
 
 / {
     chosen {
