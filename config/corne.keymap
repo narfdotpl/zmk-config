@@ -156,7 +156,7 @@
 &kp Q &kp      F &kp      W &kp      P &kp B     &kp K &kp      L &kp      U &kp      Y &kp GRAVE
 &kp A &bhm HR3 R &bhm HR2 S &bhm HR1 T &kp G     &kp M &bhm HR1 N &bhm HR2 E &bhm HR3 I &kp O
 &kp X &kp      V &kp      C &bhm HR4 Z &alt_d    &kp J &bhm HR4 H &ts_dot    &ts_comma  &ts_colon
-&esc_tab_numbers &spc_bs_apps 0 0 &lt SYSTEM ENTER      &lt SYMBOLS LA(BSPC) &bs_del_shift &mt RALT SINGLE_QUOTE
+&esc_tab_numbers &spc_bs_apps 0 0 &lt SYSTEM ENTER      &lt SYMBOLS SINGLE_QUOTE &bs_del_shift &mt RALT LA(BSPC)
             >;
         };
 
