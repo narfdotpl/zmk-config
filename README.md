@@ -2,6 +2,8 @@
 
 Configuration of my Corne keyboard.
 
+![](images/photo.jpg)
+
 
 ## Layers
 
