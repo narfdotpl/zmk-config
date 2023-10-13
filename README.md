@@ -33,6 +33,18 @@ Configuration of my Corne keyboard.
 
 ![](images/layers/colemak-mods.png)
 
+- I write in English and Polish and I use Vim
+- I started with Colemak DH (switching from QWERTY after three decades)
+- swapped `J` and `K` so they're not up side down in Vim
+- reorganized left bottom row for Polish:
+  - in Polish `Z` is the most used consonant
+  - `Q`, `V`, and `X` are not part of the alphabet
+  - after my changes all `Z` digraphs are pleasant rolls: `CZ`, `DZ`, `RZ`, `SZ`
+- swapped `F` and `W` so that closing windows is more convenient to me
+- the whole time I was using Colemak DH [layout analysis tool][analyze] to make the layout better for Polish and not much worse for English:
+
+![](images/polemak.png)
+
 
 ### Apps and windows
 
@@ -109,6 +121,7 @@ Install [ZMK Tools][] VS Code plugin. ZMK commit hash at the time of writing: `7
   [Polemak]: #colemak-dh-modifications-for-vim-and-polish-polemak
   [Miryoku]: https://github.com/manna-harbour/miryoku
   [git config]: https://github.com/narfdotpl/dotfiles/blob/master/home/.config/git/config
+  [analyze]: https://colemakmods.github.io/mod-dh/analyze.html
   [Hammerspoon]: https://github.com/narfdotpl/dotfiles/blob/master/home/.hammerspoon/init.lua
   [User Setup]: https://zmk.dev/docs/user-setup
   [Toolchain Setup]: https://zmk.dev/docs/development/setup
