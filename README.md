@@ -4,6 +4,23 @@ Configuration of my Corne keyboard.
 
 ![](images/photo.jpg)
 
+- hardware:
+  - wireless, low profile, choc-spaced, five column Corne from [Typeractive][]
+  - silver Kailh Choc switches (linear, 40gf) from [splitkb][]
+  - no case, no plates, no displays — keeping it simple
+- software:
+  - Colemak DH modified for Vim and Polish ([Polemak][]?)
+  - influenced by [Miryoku][]'s ideas and values
+  - home _low_ mods (using the index finger on the lower row for the fourth modifier instead of pinky)
+  - optimized for non-typing with just the left hand — with the right hand on the mouse/glass/... I can:
+    - open specific apps
+    - change tabs
+    - copy, paste, close, reopen, undo, redo, ...
+    - navigate system popups (tab, shift+tab, space, enter, esc)
+    - call a fair amount of git commands (thanks to my short [aliases][git config])
+    - quit CLI programs (ctrl+c, ctrl+d)
+    - ...
+
 
 ## Layers
 
@@ -87,6 +104,11 @@ pip install peat
 Install [ZMK Tools][] VS Code plugin. ZMK commit hash at the time of writing: `7f9e9f8c`.
 
   [narf]: http://narf.pl
+  [Typeractive]: https://typeractive.xyz
+  [splitkb]: https://splitkb.com/
+  [Polemak]: #colemak-dh-modifications-for-vim-and-polish-polemak
+  [Miryoku]: https://github.com/manna-harbour/miryoku
+  [git config]: https://github.com/narfdotpl/dotfiles/blob/master/home/.config/git/config
   [Hammerspoon]: https://github.com/narfdotpl/dotfiles/blob/master/home/.hammerspoon/init.lua
   [User Setup]: https://zmk.dev/docs/user-setup
   [Toolchain Setup]: https://zmk.dev/docs/development/setup
