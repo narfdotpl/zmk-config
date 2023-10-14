@@ -9,7 +9,7 @@ Configuration of my Corne keyboard.
   - silver Kailh Choc switches (linear, 40gf) from [splitkb][]
   - no case, no plates, no displays — keeping it simple
 - software:
-  - Colemak DH modified for Vim and Polish ([Polemak][]?)
+  - Colemak DH modified for Vim and Polish ([Polemak][])
   - influenced by [Miryoku][]'s ideas and values
   - home _low_ mods (using the index finger on the lower row for the fourth modifier instead of pinky)
   - optimized for non-typing with just the left hand — with the right hand on the mouse/glass/... I can:
@@ -29,7 +29,9 @@ Configuration of my Corne keyboard.
 ![](images/layers/base.png)
 
 
-### Colemak DH modifications for Vim and Polish (Polemak?)
+### Polemak
+
+Colemak DH modifications for Vim and Polish (aka Polemak)
 
 ![](images/layers/colemak-mods.png)
 
@@ -118,7 +120,7 @@ Install [ZMK Tools][] VS Code plugin. ZMK commit hash at the time of writing: `7
   [narf]: http://narf.pl
   [Typeractive]: https://typeractive.xyz
   [splitkb]: https://splitkb.com/
-  [Polemak]: #colemak-dh-modifications-for-vim-and-polish-polemak
+  [Polemak]: #polemak
   [Miryoku]: https://github.com/manna-harbour/miryoku
   [git config]: https://github.com/narfdotpl/dotfiles/blob/master/home/.config/git/config
   [analyze]: https://colemakmods.github.io/mod-dh/analyze.html
