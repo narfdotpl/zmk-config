@@ -7,6 +7,7 @@ Configuration of my Corne keyboard.
 - hardware:
   - wireless, low profile, choc-spaced, five column Corne from [Typeractive][]
   - silver Kailh Choc switches (linear, 40gf) from [splitkb][]
+  - MBK Legend 40s keycaps, also from [splitkb][]
   - no case, no plates, no displays — keeping it simple
 - software:
   - Colemak DH modified for Vim and Polish ([Polemak][])
