@@ -43,6 +43,7 @@ Colemak DH modifications for Vim and Polish (aka Polemak)
   - in Polish `Z` is the most used consonant
   - `Q`, `V`, and `X` are not part of the alphabet
   - after my changes all `Z` digraphs are pleasant rolls: `CZ`, `DZ`, `RZ`, `SZ`
+  - serendipitously, because I have `alt` on `hold R`, I can type `RZ` and `Ż` (same sound in Polish) using the same keys 🤯 just in a different rhythm
 - swapped `F` and `W` so that closing windows is more convenient to me
 - the whole time I was using Colemak DH [layout analysis tool][analyze] to make the layout better for Polish and not much worse for English:
 
