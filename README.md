@@ -5,7 +5,7 @@ Configuration of my Corne keyboard.
 ![](images/photo.jpg)
 
 - hardware:
-  - wireless, low profile, choc-spaced, five column Corne from [Typeractive][]
+  - wireless, low profile, choc-spaced, hot-swappable, five column Corne from [Typeractive][]
   - silver Kailh Choc switches (linear, 40gf) from [splitkb][]
   - MBK Legend 40s keycaps, also from [splitkb][]
   - no case, no plates, no displays — keeping it simple
