@@ -52,9 +52,9 @@ Colemak DH modifications for Vim and Polish (aka Polemak)
 
 ### Apps and windows
 
-![](images/layers/apps.png)
+Powered by [Hammerspoon][]:
 
-Powered by [Hammerspoon][].
+![](images/layers/apps.png)
 
 
 ### System
