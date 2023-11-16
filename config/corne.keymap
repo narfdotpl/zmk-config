@@ -69,6 +69,15 @@
                 , <&macro_release &mo APPS &kp LCMD>
                 ;
         };
+
+        selfdot: selfdot {
+            label = "selfdot";
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            wait-ms = <0>;
+            tap-ms = <0>;
+            bindings = <&macro_tap &kp S &kp E &kp L &kp F &kp DOT>;
+        };
     };
 
     behaviors {
@@ -155,6 +164,16 @@
 
         // other
         MAKE_TAP_SHIFT(ts_slash, SLASH, BACKSLASH)
+
+        // hold `.` for `self.`
+        dot_qm_self: dot_qm_self {
+            compatible = "zmk,behavior-hold-tap";
+            label = "dot_qm_self";
+            #binding-cells = <2>;
+            flavor = "tap-preferred";
+            tapping-term-ms = <200>;
+            bindings = <&selfdot>, <&ts_dot>;
+        };
     };
 
     keymap {
@@ -163,9 +182,9 @@
         // Colemak narf (my own flavour of Colemak DH with modifications for Vim and Polish (Polemak?))
         default_layer {
             bindings = <
-&mt LG(N1) Q &mt LG(N2) F &mt LG(N3) W &mt LG(N4) P &mt LG(N5) B     &kp K &kp       L &kp      U &kp       Y &kp GRAVE
-&kp        A &bhm HR3   R &bhm HR2   S &bhm HR1   T &kp        G     &kp M &sbhm HR1 N &bhm HR2 E &sbhm HR3 I &kp O
-&kp        X &mt LG(V)  V &mt LG(C)  C &bhm HR4   Z &alt_d           &kp J &bhm  HR4 H &ts_dot    &ts_comma   &ts_colon
+&mt LG(N1) Q &mt LG(N2) F &mt LG(N3) W &mt LG(N4) P &mt LG(N5) B     &kp K &kp       L &kp      U       &kp       Y &kp GRAVE
+&kp        A &bhm HR3   R &bhm HR2   S &bhm HR1   T &kp        G     &kp M &sbhm HR1 N &bhm HR2 E       &sbhm HR3 I &kp O
+&kp        X &mt LG(V)  V &mt LG(C)  C &bhm HR4   Z &alt_d           &kp J &bhm  HR4 H &dot_qm_self 0 0 &ts_comma   &ts_colon
 &lt NUMBERS ESC &spc_bs_apps 0 0 &enter_tab_system                   &lt SYMBOLS SINGLE_QUOTE &bs_del_symbols &kp LA(BSPC)
             >;
         };
