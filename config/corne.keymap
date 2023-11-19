@@ -37,6 +37,17 @@
     };
 
 
+#define MAKE_KP_MACRO(name, ...) \
+    name: name { \
+        label = #name; \
+        compatible = "zmk,behavior-macro"; \
+        #binding-cells = <0>; \
+        wait-ms = <0>; \
+        tap-ms = <0>; \
+        bindings = <&macro_tap __VA_ARGS__>; \
+    };
+
+
 // fixes "system layer not activating" perceived bug
 //
 // > triggers the hold behavior when the tapping-term-ms has expired or another key is pressed
@@ -70,14 +81,7 @@
                 ;
         };
 
-        selfdot: selfdot {
-            label = "selfdot";
-            compatible = "zmk,behavior-macro";
-            #binding-cells = <0>;
-            wait-ms = <0>;
-            tap-ms = <0>;
-            bindings = <&macro_tap &kp S &kp E &kp L &kp F &kp DOT>;
-        };
+        MAKE_KP_MACRO(selfdot, &kp S &kp E &kp L &kp F &kp DOT)
     };
 
     behaviors {
