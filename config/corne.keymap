@@ -195,7 +195,7 @@
         default_layer {
             bindings = <
 &mt LG(N1) Q &mt LG(N2) F &mt LG(N3) W &mt LG(N4) P &mt LG(N5) B     &kp K &kp       L &kp      U  &kp       Y   &kp GRAVE
-&kp        A &bhm HR3   R &bhm HR2   S &bhm HR1   T &kp        G     &kp M &sbhm HR1 N &bhm HR2 E  &sbhm HR3 I   &kp O
+&mt LG(A)  A &bhm HR3   R &bhm HR2   S &bhm HR1   T &kp        G     &kp M &sbhm HR1 N &bhm HR2 E  &sbhm HR3 I   &kp O
 &kp        X &mt LG(V)  V &mt LG(C)  C &bhm HR4   Z &alt_d           &kp J &bhm  HR4 H &th_dot 0 0 &th_comma 0 0 &th_colon 0 0
 &lt NUMBERS ESC &spc_bs_apps 0 0 &enter_tab_system                   &lt SYMBOLS SINGLE_QUOTE &bs_del_symbols &kp LA(BSPC)
             >;
