@@ -95,6 +95,7 @@
         MAKE_KP_MACRO(selfdot, &kp S &kp E &kp L &kp F &kp DOT)
         MAKE_KP_MACRO(args0, &kp DOLLAR &kp N0 &kp DOT)
         MAKE_KP_MACRO(args1, &kp DOLLAR &kp N1 &kp DOT)
+        MAKE_KP_MACRO(append_semicolon, &kp LG(RIGHT) &kp SEMICOLON)
     };
 
     behaviors {
@@ -233,7 +234,7 @@
             bindings = <
 &kp PERCENT &kp AT   &kp HASH  &kp PIPE  &kp CARET       &none         &none              &kp      LA(UP)   &none             &kp EMOJI
 &kp DOLLAR  &kp LBKT &kp RBKT  &kp LPAR  &kp RPAR        &none         &bhm HR1 LG(LBKT)  &bhm HR2 LA(DOWN) &bhm HR3 LG(RBKT) &none
-&kp AMPS    &kp LBRC &kp RBRC  &kp LT    &kp GT          &kp LG(SLASH) &kp  HR4           &kp QUESTION      &kp EXCLAMATION   &kp SEMICOLON
+&kp AMPS    &kp LBRC &kp RBRC  &kp LT    &kp GT          &kp LG(SLASH) &kp  HR4           &kp QUESTION      &kp EXCLAMATION   &append_semicolon
                      &kp UNDER &kp UNDER &kp EQUAL       &none         &none              &none
             >;
         };
