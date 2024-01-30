@@ -4,6 +4,8 @@ Configuration of my Corne keyboard.
 
 ![](images/photo.jpg)
 
+![](images/switches.jpg)
+
 
 ### Hardware
 
@@ -12,9 +14,12 @@ Configuration of my Corne keyboard.
   - low profile
   - choc-spaced
   - hot-swappable
-- silver Kailh Choc switches (linear, 40gf) from [splitkb][]
-- MBK Legend 40s keycaps, also from [splitkb][]
 - no case, no plates, no displays — keeping it simple
+- MBK Legend 40s keycaps from [splitkb][]
+- linear Kailh Choc switches, also from [splitkb][]:
+  - mostly silver (40gf)
+  - pro red (35gf) near the outer edge
+  - pink (20gf) under pinkies
 
 
 ### Software
