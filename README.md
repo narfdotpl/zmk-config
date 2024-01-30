@@ -4,27 +4,32 @@ Configuration of my Corne keyboard.
 
 ![](images/photo.jpg)
 
-- hardware:
-  - five column Corne from [Typeractive][]
-    - wireless
-    - low profile
-    - choc-spaced
-    - hot-swappable
-  - silver Kailh Choc switches (linear, 40gf) from [splitkb][]
-  - MBK Legend 40s keycaps, also from [splitkb][]
-  - no case, no plates, no displays — keeping it simple
-- software:
-  - Colemak DH modified for Vim and Polish ([Polemak][])
-  - influenced by [Miryoku][]'s ideas and values
-  - home _low_ mods (using the index finger on the lower row for the fourth modifier instead of pinky)
-  - optimized for non-typing with just the left hand — with the right hand on the mouse/glass/... I can:
-    - open specific apps
-    - change tabs
-    - copy, paste, close, reopen, undo, redo, ...
-    - navigate system popups (tab, shift+tab, space, enter, esc)
-    - call a fair amount of git commands (thanks to my short [aliases][git config])
-    - quit CLI programs (ctrl+c, ctrl+d)
-    - ...
+
+### Hardware
+
+- five column Corne from [Typeractive][]
+  - wireless
+  - low profile
+  - choc-spaced
+  - hot-swappable
+- silver Kailh Choc switches (linear, 40gf) from [splitkb][]
+- MBK Legend 40s keycaps, also from [splitkb][]
+- no case, no plates, no displays — keeping it simple
+
+
+### Software
+
+- Colemak DH modified for Vim and Polish ([Polemak][])
+- influenced by [Miryoku][]'s ideas and values
+- home _low_ mods (using the index finger on the lower row for the fourth modifier instead of pinky)
+- optimized for non-typing with just the left hand — with the right hand on the mouse/glass/... I can:
+  - open specific apps
+  - change tabs
+  - copy, paste, close, reopen, undo, redo, ...
+  - navigate system popups (tab, shift+tab, space, enter, esc)
+  - call a fair amount of git commands (thanks to my short [aliases][git config])
+  - quit CLI programs (ctrl+c, ctrl+d)
+  - ...
 
 
 ## Layers
