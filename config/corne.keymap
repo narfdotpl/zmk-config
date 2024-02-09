@@ -10,6 +10,7 @@
 #define NUMBERS 5
 #define NUMPAD 6
 #define F1_F12 7
+#define EQ_OPS 8
 
 // home row
 #define HR1 LSHIFT
@@ -46,6 +47,10 @@
         tap-ms = <0>; \
         bindings = <&macro_tap __VA_ARGS__>; \
     };
+
+
+#define MAKE_EQ_MACRO(name, key) \
+        MAKE_KP_MACRO(name, &kp SPACE &kp key &kp EQUAL &kp SPACE)
 
 
 #define MAKE_TAP_HOLD(name, tap, hold) \
@@ -96,6 +101,13 @@
         MAKE_KP_MACRO(args0, &kp DOLLAR &kp N0 &kp DOT)
         MAKE_KP_MACRO(args1, &kp DOLLAR &kp N1 &kp DOT)
         MAKE_KP_MACRO(append_semicolon, &kp LG(RIGHT) &kp SEMICOLON)
+
+        MAKE_EQ_MACRO(eq_eq, EQUAL)
+        MAKE_EQ_MACRO(excl_eq, EXCLAMATION)
+        MAKE_EQ_MACRO(plus_eq, PLUS)
+        MAKE_EQ_MACRO(minus_eq, MINUS)
+        MAKE_EQ_MACRO(slash_eq, SLASH)
+        MAKE_EQ_MACRO(star_eq, ASTERISK)
     };
 
     behaviors {
@@ -241,10 +253,10 @@
 
         numbers_layer {
             bindings = <
-&kp N1 &kp      N2 &kp      N3 &kp      N4 &kp N5    &kp PLUS     &kp N7 &kp N8 &kp N9 &none
-&kp N6 &bhm HR3 N7 &bhm HR2 N8 &bhm HR1 N9 &kp N0    &kp MINUS    &kp N4 &kp N5 &kp N6 &none
-&trans &trans      &trans      &trans      &trans    &ts_slash    &kp N1 &kp N2 &kp N3 &none
-&trans &lt NUMPAD SPACE &lt F1_F12 EQUAL   &kp ASTERISK &kp N0 &kp DOT
+&lt EQ_OPS N1 &kp      N2 &kp      N3 &kp      N4 &kp N5    &kp PLUS     &kp N7 &kp N8 &kp N9 &kp EQUAL
+&kp        N6 &bhm HR3 N7 &bhm HR2 N8 &bhm HR1 N9 &kp N0    &kp MINUS    &kp N4 &kp N5 &kp N6 &none
+&trans        &trans      &trans      &trans      &trans    &ts_slash    &kp N1 &kp N2 &kp N3 &none
+&trans        &lt NUMPAD SPACE &lt F1_F12 EQUAL   &kp ASTERISK &kp N0 &kp DOT
             >;
         };
 
@@ -263,6 +275,15 @@
 &none &none &none &none &none    &none &kp F4 &kp F5 &kp F6 &kp F11
 &none &none &none &none &none    &none &kp F1 &kp F2 &kp F3 &kp F10
             &none &none &none    &none &none &none
+            >;
+        };
+
+        equal_operators_layer {
+            bindings = <
+&trans &trans &trans &trans &trans    &plus_eq  &trans &trans &trans &eq_eq
+&trans &trans &trans &trans &trans    &minus_eq &trans &trans &trans &excl_eq
+&trans &trans &trans &trans &trans    &slash_eq &trans &trans &trans &trans
+              &trans &trans &trans    &star_eq  &trans &trans
             >;
         };
 
