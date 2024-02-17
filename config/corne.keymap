@@ -253,9 +253,9 @@
 
         numbers_layer {
             bindings = <
-&lt EQ_OPS N1 &kp      N2 &kp      N3 &kp      N4 &kp N5    &kp PLUS     &kp N7 &kp N8 &kp N9 &kp EQUAL
-&kp        N6 &bhm HR3 N7 &bhm HR2 N8 &bhm HR1 N9 &kp N0    &kp MINUS    &kp N4 &kp N5 &kp N6 &none
-&trans        &trans      &trans      &trans      &trans    &ts_slash    &kp N1 &kp N2 &kp N3 &none
+&lt EQ_OPS N1 &kp      N2   &kp      N3 &kp      N4 &kp N5    &kp PLUS     &kp N7 &kp N8 &kp N9 &kp EQUAL
+&kp        N6 &bhm HR3 N7   &bhm HR2 N8 &bhm HR1 N9 &kp N0    &kp MINUS    &kp N4 &kp N5 &kp N6 &none
+&kp LG(LEFT)  &kp LG(RIGHT) &trans      &trans      &trans    &ts_slash    &kp N1 &kp N2 &kp N3 &none
 &trans        &lt NUMPAD SPACE &lt F1_F12 EQUAL   &kp ASTERISK &kp N0 &kp DOT
             >;
         };
