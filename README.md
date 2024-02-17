@@ -131,7 +131,7 @@ pyenv activate zmk-config
 pip install peat
 ```
 
-Install [ZMK Tools][] VS Code plugin. ZMK commit hash at the time of writing: `7f9e9f8c`.
+Install [ZMK Tools][] VS Code plugin. ZMK commit hash at the time of writing: `c9c620d1`.
 
   [narf]: http://narf.pl
   [Typeractive]: https://typeractive.xyz
