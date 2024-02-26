@@ -24,7 +24,7 @@ Configuration of my Corne keyboard.
 
 ### Software
 
-- Colemak DH modified for Vim and Polish (aka [Polemak][])
+- [Polemak][]: Colemak DH modified for Polish and Vim
 - influenced by [Miryoku][]'s ideas and values
 - home _low_ mods (using the index finger on the lower row for the fourth modifier instead of pinky)
 - optimized for non-typing with just the left hand — with the right hand on the mouse/glass/... I can:
@@ -49,7 +49,7 @@ Images have not been updated [for a while](https://github.com/narfdotpl/zmk-conf
 
 ### Polemak
 
-Colemak DH modified for Vim and Polish (aka Polemak)
+Colemak DH modified for Polish and Vim
 
 ![](images/layers/colemak-mods.png)
 
