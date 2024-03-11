@@ -10,6 +10,7 @@ Configuration of my Corne keyboard.
 ### Hardware
 
 - five column Corne from [Typeractive][]
+  - 36 keys
   - wireless
   - low profile
   - choc-spaced
