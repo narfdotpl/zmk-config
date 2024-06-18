@@ -107,6 +107,9 @@
         MAKE_KP_MACRO(args0, &kp DOLLAR &kp N0 &kp DOT)
         MAKE_KP_MACRO(append_semicolon, &kp LG(RIGHT) &kp SEMICOLON)
 
+        MAKE_KP_MACRO(fat_arrow_close, &kp RIGHT &kp SPACE &kp EQUAL &kp GT &kp SPACE &kp LBRC &kp SPACE &kp LEFT &kp SPACE)
+        MAKE_KP_MACRO(fat_arrow, &kp LPAR &fat_arrow_close)
+
         MAKE_EQ_MACRO(eq_eq, EQUAL)
         MAKE_EQ_MACRO(excl_eq, EXCLAMATION)
         MAKE_EQ_MACRO(plus_eq, PLUS)
@@ -197,6 +200,10 @@
         MAKE_TAP_SHIFT(ts_comma, COMMA, EXCLAMATION)
         MAKE_TAP_SHIFT(ts_colon, COLON, SEMICOLON)
 
+        // just a hack so that I can use `MAKE_TAP_HOLD` later on
+        MAKE_TAP_SHIFT(ts_lpar, LPAR, LPAR)
+        MAKE_TAP_SHIFT(ts_rpar, RPAR, RPAR)
+
         // other
         MAKE_TAP_SHIFT(ts_slash, SLASH, BACKSLASH)
 
@@ -204,6 +211,8 @@
         MAKE_TAP_HOLD(th_dot, &ts_dot, &selfdot)
         MAKE_TAP_HOLD(th_comma, &ts_comma, &thisdot)
         MAKE_TAP_HOLD(th_colon, &ts_colon, &args0)
+        MAKE_TAP_HOLD(th_lpar, &ts_lpar, &fat_arrow)
+        MAKE_TAP_HOLD(th_rpar, &ts_rpar, &fat_arrow_close)
     };
 
     keymap {
@@ -249,10 +258,10 @@
 
         symbols_layer {
             bindings = <
-&kp PERCENT &kp AT   &kp HASH  &kp PIPE  &kp CARET       &kp VSC_BACK  &kp VSC_FWD        &kp      LA(UP)   &none             &kp EMOJI
-&kp DOLLAR  &kp LBKT &kp RBKT  &kp LPAR  &kp RPAR        &none         &bhm HR1 LG(LBKT)  &bhm HR2 LA(DOWN) &bhm HR3 LG(RBKT) &kp DEGREE
-&kp AMPS    &kp LBRC &kp RBRC  &kp LT    &kp GT          &kp LG(SLASH) &kp  HR4           &kp QUESTION      &kp EXCLAMATION   &append_semicolon
-                     &kp UNDER &kp UNDER &kp EQUAL       &none         &none              &none
+&kp PERCENT &kp AT   &kp HASH  &kp PIPE      &kp CARET       &kp VSC_BACK  &kp VSC_FWD        &kp      LA(UP)   &none             &kp EMOJI
+&kp DOLLAR  &kp LBKT &kp RBKT  &th_lpar 0 0  &th_rpar 0 0    &none         &bhm HR1 LG(LBKT)  &bhm HR2 LA(DOWN) &bhm HR3 LG(RBKT) &kp DEGREE
+&kp AMPS    &kp LBRC &kp RBRC  &kp LT        &kp GT          &kp LG(SLASH) &kp  HR4           &kp QUESTION      &kp EXCLAMATION   &append_semicolon
+                     &kp UNDER &kp UNDER     &kp EQUAL       &none         &none              &none
             >;
         };
 
