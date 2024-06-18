@@ -30,6 +30,7 @@
 
 #define HY(X) LA(LC(LG(LS(X))))
 #define EMOJI LC(LG(SPACE))
+#define DEGREE LA(LS(N8))
 
 
 #define MAKE_TAP_SHIFT(name, tap, shift) \
@@ -249,7 +250,7 @@
         symbols_layer {
             bindings = <
 &kp PERCENT &kp AT   &kp HASH  &kp PIPE  &kp CARET       &kp VSC_BACK  &kp VSC_FWD        &kp      LA(UP)   &none             &kp EMOJI
-&kp DOLLAR  &kp LBKT &kp RBKT  &kp LPAR  &kp RPAR        &none         &bhm HR1 LG(LBKT)  &bhm HR2 LA(DOWN) &bhm HR3 LG(RBKT) &none
+&kp DOLLAR  &kp LBKT &kp RBKT  &kp LPAR  &kp RPAR        &none         &bhm HR1 LG(LBKT)  &bhm HR2 LA(DOWN) &bhm HR3 LG(RBKT) &kp DEGREE
 &kp AMPS    &kp LBRC &kp RBRC  &kp LT    &kp GT          &kp LG(SLASH) &kp  HR4           &kp QUESTION      &kp EXCLAMATION   &append_semicolon
                      &kp UNDER &kp UNDER &kp EQUAL       &none         &none              &none
             >;
