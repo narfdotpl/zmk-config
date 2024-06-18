@@ -103,8 +103,8 @@
         };
 
         MAKE_KP_MACRO(selfdot, &kp S &kp E &kp L &kp F &kp DOT)
+        MAKE_KP_MACRO(thisdot, &kp T &kp H &kp I &kp S &kp DOT)
         MAKE_KP_MACRO(args0, &kp DOLLAR &kp N0 &kp DOT)
-        MAKE_KP_MACRO(args1, &kp DOLLAR &kp N1 &kp DOT)
         MAKE_KP_MACRO(append_semicolon, &kp LG(RIGHT) &kp SEMICOLON)
 
         MAKE_EQ_MACRO(eq_eq, EQUAL)
@@ -202,8 +202,8 @@
 
         // hold taps
         MAKE_TAP_HOLD(th_dot, &ts_dot, &selfdot)
-        MAKE_TAP_HOLD(th_comma, &ts_comma, &args0)
-        MAKE_TAP_HOLD(th_colon, &ts_colon, &args1)
+        MAKE_TAP_HOLD(th_comma, &ts_comma, &thisdot)
+        MAKE_TAP_HOLD(th_colon, &ts_colon, &args0)
     };
 
     keymap {
