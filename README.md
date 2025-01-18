@@ -39,6 +39,9 @@ Configuration of my Corne keyboard.
 
 ## Layers
 
+Images have not been updated [for a while](https://github.com/narfdotpl/zmk-config/compare/ad21215...master).
+
+
 ### Base
 
 ![](images/layers/base.png)
