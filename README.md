@@ -40,7 +40,7 @@ Configuration of my Corne keyboard.
 
 ## Layers
 
-Images have not been updated [for a while](https://github.com/narfdotpl/zmk-config/compare/ad21215...master).
+Images have not been updated [for a while](https://github.com/narfdotpl/zmk-config/compare/113ec9a057dc9de4e0a4f90d7a0cd3a8a14dcf2a...master).
 
 
 ### Base
