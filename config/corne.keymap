@@ -3,14 +3,15 @@
 #include <dt-bindings/zmk/bt.h>
 
 // layers
-#define SYSTEM 1
-#define BLUETOOTH 2
-#define APPS 3
-#define SYMBOLS 4
-#define NUMBERS 5
-#define NUMPAD 6
-#define F1_F12 7
-#define EQ_OPS 8
+#define ALPHA 1
+#define SYSTEM 2
+#define BLUETOOTH 3
+#define APPS 4
+#define SYMBOLS 5
+#define NUMBERS 6
+#define NUMPAD 7
+#define F1_F12 8
+#define EQ_OPS 9
 
 // home row
 #define HR1 LSHIFT
@@ -231,7 +232,16 @@
 &mt LG(N1) Q &mt LG(N2) F &mt LG(N3) W &mt LG(N4) P &mt LG(N5) B     &kp K &kp       L &kp      U  &kp       Y   &kp GRAVE
 &mt LG(A)  A &bhm HR3   R &bhm HR2   S &bhm HR1   T &mt LG(N0) G     &kp M &sbhm HR1 N &bhm HR2 E  &sbhm HR3 I   &kp O
 &kp        X &mt LG(V)  V &mt LG(C)  C &bhm HR4   Z &alt_d           &kp J &bhm  HR4 H &th_dot 0 0 &th_comma 0 0 &th_colon 0 0
-&lt NUMBERS ESC &spc_bs_apps 0 0 &enter_tab_system                   &lt SYMBOLS SINGLE_QUOTE &bs_del_symbols &kp LA(BSPC)
+&lt NUMBERS ESC &spc_bs_apps 0 0 &enter_tab_system                   &lt SYMBOLS SINGLE_QUOTE &bs_del_symbols &lt ALPHA LA(BSPC)
+            >;
+        };
+
+        alpha_layer {
+            bindings = <
+&kp Q &kp F &kp W &kp P &kp B     &kp K &kp L &kp U &kp Y &trans
+&kp A &kp R &kp S &kp T &kp G     &kp M &kp N &kp E &kp I &kp O
+&kp X &kp V &kp C &kp Z &kp D     &kp J &kp H &trans &trans &trans
+&kp ESC &kp SPACE &kp ENTER       &trans &kp BSPC &none
             >;
         };
 
