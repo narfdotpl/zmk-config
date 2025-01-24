@@ -68,6 +68,16 @@ Colemak DH modified for Polish and Vim
 ![](images/polemak.png)
 
 
+### Alpha layer
+
+Just alphabet keys with no hold behaviours.
+
+
+### Greek layer
+
+Greek characters using [urob/zmk-helpers](https://github.com/urob/zmk-helpers) and a Unicode hack on macOS: [Hammerspoon bindings](https://github.com/narfdotpl/dotfiles/commit/3fc93d50cc17e3a4dcf65a74143abaeaa2d14f0d) that toggle the [Unicode input source](https://github.com/narfdotpl/narf.pl/commit/4bab2c4219e701169b5905053d3f5fc19f7d1ae6).
+
+
 ### Apps and windows
 
 Powered by [Hammerspoon][]:
