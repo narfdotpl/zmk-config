@@ -125,9 +125,10 @@ I use macOS, <strike>VS Code</strike> Cursor, and Docker Desktop. I followed the
 
 ```
 cd ~/github
-git clone git@github.com:zmkfirmware/zmk.git
 git clone git@github.com:narfdotpl/zmk-config.git
 docker volume create --driver local -o o=bind -o type=none -o device="$HOME/github/zmk-config" zmk-config
+cd zmk-config
+git submodule update --init
 brew install pyenv pyenv-virtualenv
 pyenv install 3.11.3
 pyenv virtualenv zmk-config
@@ -135,7 +136,18 @@ pyenv activate zmk-config
 pip install peat
 ```
 
-Install [ZMK Tools][] VS Code plugin. ZMK commit hash at the time of writing: `c9c620d1`.
+```
+./scripts/develop
+```
+
+In the ZMK container:
+
+```
+west init -l app/
+west update
+```
+
+Install [ZMK Tools][] VS Code plugin.
 
   [narf]: http://narf.pl
   [Typeractive]: https://typeractive.xyz

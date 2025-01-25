@@ -1,0 +1,3 @@
+[submodule "dependencies/zmk"]
+	path = dependencies/zmk
+	url = git@github.com:zmkfirmware/zmk.git
