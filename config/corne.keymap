@@ -108,6 +108,22 @@
                 ;
         };
 
+        // toggle unicode input mode and switch to Greek layer
+        greek_mode: greek_mode {
+            label = "greek_mode";
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            wait-ms = <0>;
+            bindings
+                = <&macro_tap &kp HY(U)>  // Unicode (via Hammerspoon)
+                , <&macro_press &mo GREEK>
+                , <&macro_pause_for_release>
+                , <&macro_release &mo GREEK>
+                , <&macro_tap &kp HY(V)>  // Polish (via Hammerspoon)
+                ;
+        };
+
+
         MAKE_KP_MACRO(selfdot, &kp S &kp E &kp L &kp F &kp DOT)
         MAKE_KP_MACRO(thisdot, &kp T &kp H &kp I &kp S &kp DOT)
         MAKE_KP_MACRO(args0, &kp DOLLAR &kp N0 &kp DOT)
@@ -187,12 +203,14 @@
         };
 
         // tap, shift+tap, hold
+        MAKE_TAP_SHIFT(ts_bs_del, BACKSPACE, DELETE)
         bs_del_greek: bs_del_greek {
-            compatible = "zmk,behavior-mod-morph";
+            compatible = "zmk,behavior-hold-tap";
             label = "bs_del_greek";
-            #binding-cells = <0>;
-            bindings = <&lt GREEK BACKSPACE>, <&kp DELETE>;
-            mods = <(MOD_LSFT|MOD_RSFT)>;
+            #binding-cells = <2>;
+            flavor = "hold-preferred";
+            tapping-term-ms = <200>;
+            bindings = <&greek_mode>, <&ts_bs_del>;
         };
 
         // alt+d = alt+x
@@ -237,7 +255,7 @@
 &mt LG(N1) Q &mt LG(N2) F &mt LG(N3) W &mt LG(N4) P &mt LG(N5) B     &kp K &kp       L &kp      U  &kp       Y   &kp GRAVE
 &mt LG(A)  A &bhm HR3   R &bhm HR2   S &bhm HR1   T &mt LG(N0) G     &kp M &sbhm HR1 N &bhm HR2 E  &sbhm HR3 I   &kp O
 &kp        X &mt LG(V)  V &mt LG(C)  C &bhm HR4   Z &alt_d           &kp J &bhm  HR4 H &th_dot 0 0 &th_comma 0 0 &th_colon 0 0
-&lt NUMBERS ESC &spc_bs_apps 0 0 &enter_tab_system                   &lt SYMBOLS SINGLE_QUOTE &bs_del_greek &lt ALPHA LA(BSPC)
+&lt NUMBERS ESC &spc_bs_apps 0 0 &enter_tab_system                   &lt SYMBOLS SINGLE_QUOTE &bs_del_greek 0 0 &lt ALPHA LA(BSPC)
             >;
         };
 
@@ -253,7 +271,7 @@
         greek_layer {
             bindings = <
 &kp Q &kp F &kp W &kp P &kp B     &kp K &kp L &kp U &kp Y &trans
-&kp A &kp R &kp S &kp T &kp G     &kp M &kp N &kp E &kp I &kp O
+&el_alpha &kp R &kp S &kp T &kp G     &kp M &kp N &kp E &kp I &kp O
 &kp X &kp V &kp C &kp Z &kp D     &kp J &kp H &trans &trans &trans
 &kp ESC &kp SPACE &kp ENTER       &trans &kp BSPC &none
             >;
