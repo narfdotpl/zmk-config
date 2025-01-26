@@ -1,3 +1,6 @@
 [submodule "dependencies/zmk"]
 	path = dependencies/zmk
 	url = git@github.com:zmkfirmware/zmk.git
+[submodule "dependencies/zmk-helpers"]
+	path = dependencies/zmk-helpers
+	url = git@github.com:urob/zmk-helpers.git
