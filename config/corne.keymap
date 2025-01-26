@@ -270,10 +270,10 @@
 
         greek_layer {
             bindings = <
-&kp Q &kp F &kp W &kp P &kp B     &kp K &kp L &kp U &kp Y &trans
-&el_alpha &kp R &kp S &kp T &kp G     &kp M &kp N &kp E &kp I &kp O
-&kp X &kp V &kp C &kp Z &kp D     &kp J &kp H &trans &trans &trans
-&kp ESC &kp SPACE &kp ENTER       &trans &kp BSPC &none
+&el_xi    &el_phi &el_omega &el_pi   &el_beta      &el_kappa &el_lambda &el_upsilon &el_psi  &trans
+&el_alpha &el_rho &el_sigma &el_tau  &el_gamma     &el_mu    &el_eta    &el_epsilon &el_iota &el_omikron
+&el_chi   &el_nu  &none     &el_zeta &el_delta     &none     &el_theta  &trans &trans &trans
+&kp LEFT_SHIFT &kp SPACE &kp ENTER                 &trans &none &kp LEFT_SHIFT
             >;
         };
 
