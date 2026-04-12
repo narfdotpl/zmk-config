@@ -117,7 +117,7 @@ ZMK configs are designed for [building remotely using GitHub Actions][User Setup
 
 ### Environment
 
-I use macOS, <strike>VS Code</strike> Cursor, and Docker Desktop. I followed the "VS Code & Docker" instructions described in the [Toolchain Setup][] section.
+I use macOS, VS Code, and Docker Desktop. I followed the "VS Code & Docker" instructions described in the [Toolchain Setup][] section.
 
 
 ### Usage

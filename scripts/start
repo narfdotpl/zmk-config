@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
 
 docker container list || $(open -a Docker && sleep 10)
-cursor ~/github/zmk-config || code ~/github/zmk-config
-cursor ~/github/zmk-config/dependencies/zmk || code ~/github/zmk-config/dependencies/zmk
+code ~/github/zmk-config
+code ~/github/zmk-config/dependencies/zmk
