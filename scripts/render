@@ -1,0 +1,247 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.10"
+# dependencies = ["pillow"]
+# ///
+"""Render ZMK keymap layers as .webp images (36-key split keyboard)."""
+
+from __future__ import annotations
+
+import math
+import sys
+from dataclasses import dataclass
+from pathlib import Path
+
+from PIL import Image, ImageDraw, ImageFont
+
+ROOT = Path(__file__).resolve().parent.parent
+OUT_DIR = ROOT / "images" / "layers"
+
+# --- Palette (One Dark Pro) --------------------------------------------------
+
+PALETTE = {
+    "background": "#21252b",
+    "key": "#282c34",
+    "key_border": "#3e4451",
+    "fg": "#abb2bf",
+    "muted": "#5c6370",
+    "red": "#e06c75",
+    "green": "#98c379",
+    "yellow": "#e5c07b",
+    "blue": "#61afef",
+    "magenta": "#c678dd",
+    "cyan": "#56b6c2",
+    "orange": "#d19a66",
+    # Subtle key backgrounds
+    "bg_red": "#3b2d33",
+    "bg_green": "#2f3a2f",
+    "bg_yellow": "#3a3529",
+    "bg_blue": "#27384a",
+    "bg_magenta": "#37304a",
+    "bg_cyan": "#263a3d",
+}
+
+# --- Geometry (in key units; 1.0 = key pitch) ---------------------------------
+
+# Vertical stagger of each column, outer -> inner, for the left half.
+COLUMN_OFFSETS = [0.40, 0.15, 0.0, 0.17, 0.30]
+MIRROR_X = 6.24  # x of the axis between the two halves
+
+
+@dataclass(frozen=True)
+class Slot:
+    x: float  # center
+    y: float  # center
+    w: float = 1.0
+    h: float = 1.0
+    rot: float = 0.0  # degrees, clockwise
+
+
+def _left_slots() -> list[Slot]:
+    slots = [
+        Slot(col + 0.5, COLUMN_OFFSETS[col] + row + 0.5)
+        for row in range(3)
+        for col in range(5)
+    ]
+    # Thumbs, left -> right. The last one is the tall key.
+    slots += [
+        Slot(3.00, 3.95, rot=0),
+        Slot(4.12, 4.05, rot=15),
+        Slot(5.22, 4.25, h=1.5, rot=25),
+    ]
+    return slots
+
+
+def _mirror(s: Slot) -> Slot:
+    return Slot(2 * MIRROR_X - s.x, s.y, s.w, s.h, -s.rot)
+
+
+def build_slots() -> list[Slot]:
+    """36 slots. Order: left 3x5 rows, right 3x5 rows (visual order), left
+    thumbs (L->R), right thumbs (L->R)."""
+    left = _left_slots()
+    left_main, left_thumbs = left[:15], left[15:]
+    right_main: list[Slot] = []
+    for row in range(3):
+        row_slots = [_mirror(s) for s in left_main[row * 5 : row * 5 + 5]]
+        right_main += sorted(row_slots, key=lambda s: s.x)
+    right_thumbs = sorted((_mirror(s) for s in left_thumbs), key=lambda s: s.x)
+    return left_main + right_main + left_thumbs + right_thumbs
+
+
+SLOTS = build_slots()
+assert len(SLOTS) == 36
+
+# --- Keys & layers ------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class Key:
+    label: str = ""
+    hold: str = ""
+    label_color: str = "fg"
+    hold_color: str = "muted"
+    bg: str | None = None  # palette name; None -> default key color
+
+
+def K(label="", hold="", color="fg", hold_color="muted", bg=None) -> Key:
+    return Key(label, hold, color, hold_color, bg)
+
+
+def base_layer() -> list[Key]:
+    left = [
+        K("Q"), K("F"), K("W"), K("P"), K("B"),
+        K("A"), K("R", "ALT"), K("S", "CMD"), K("T", "SHIFT"), K("G"),
+        K("X"), K("V"), K("C"), K("Z", "CTRL"), K("D", "ALT+X"),
+    ]  # fmt: skip
+
+    # Right half in visual order: inner column first.
+    right = [
+        K("K"), K("L"), K("U"), K("Y"), K("'"),
+        K("M"), K("N", "SHIFT"), K("E", "CMD"), K("I", "ALT"), K("O"),
+        K("J"), K("H", "CTRL"), K(".\n?"), K(",\n!"), K(":\n;"),
+    ]  # fmt: skip
+
+    thumbs_l = [
+        K("ESC\nTAB", "NUMBERS", hold_color="yellow"),
+        K("SPC  BS", "APPS", hold_color="blue"),
+        K("ENTER", "SYSTEM", hold_color="red"),
+    ]
+    thumbs_r = [
+        K("ALT+BS", "SYMBOLS", hold_color="green"),
+        K("BS  DEL", "SHIFT"),
+        K("'  \"", "ALT"),
+    ]
+    return left + right + thumbs_l + thumbs_r
+
+
+LAYERS: dict[str, list[Key]] = {
+    "base": base_layer(),
+}
+
+# --- Rendering ----------------------------------------------------------------
+
+UNIT = 110  # px per key unit
+GAP = 0.08  # gap between keys, in units
+RADIUS = 0.12  # corner radius, in units
+BORDER = 2  # px
+MARGIN = 0.5  # units
+SS = 2  # supersampling factor
+
+FONT_CANDIDATES = [
+    "/System/Library/Fonts/SFNSMono.ttf",
+    "/System/Library/Fonts/Menlo.ttc",
+    "/Library/Fonts/Arial.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
+]
+
+
+def load_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    for path in FONT_CANDIDATES:
+        try:
+            return ImageFont.truetype(path, size)
+        except OSError:
+            continue
+    return ImageFont.load_default(size)
+
+
+def fit_font(d: ImageDraw.ImageDraw, text: str, max_width: float, size: int):
+    """Largest font (<= size) for which the widest line fits max_width."""
+    while size > 8:
+        font = load_font(size)
+        if max((d.textlength(l, font=font) for l in text.split("\n") or [""]), default=0) <= max_width:
+            return font
+        size -= 2
+    return load_font(size)
+
+
+def color(name: str) -> str:
+    return PALETTE[name]
+
+
+def draw_key(canvas: Image.Image, slot: Slot, key: Key) -> None:
+    u = UNIT * SS
+    w = round((slot.w - GAP) * u)
+    h = round((slot.h - GAP) * u)
+    pad = 2 * SS
+    tile = Image.new("RGBA", (w + 2 * pad, h + 2 * pad), (0, 0, 0, 0))
+    d = ImageDraw.Draw(tile)
+    d.rounded_rectangle(
+        (pad, pad, pad + w - 1, pad + h - 1),
+        radius=RADIUS * u,
+        fill=color(key.bg or "key"),
+        outline=color("key_border"),
+        width=BORDER * SS,
+    )
+
+    cx, cy = tile.width / 2, tile.height / 2
+    main_font = fit_font(d, key.label, (w - 0.2 * u), round(0.34 * u))
+    hold_font = load_font(round(0.15 * u))
+    if key.label:
+        ly = cy - (0.08 * u if key.hold else 0)
+        d.multiline_text(
+            (cx, ly), key.label, font=main_font, fill=color(key.label_color),
+            anchor="mm", align="center", spacing=0.04 * u,
+        )  # fmt: skip
+    if key.hold:
+        d.text(
+            (cx, pad + h - 0.17 * u), key.hold, font=hold_font,
+            fill=color(key.hold_color), anchor="mm",
+        )  # fmt: skip
+
+    if slot.rot:
+        tile = tile.rotate(-slot.rot, resample=Image.BICUBIC, expand=True)
+    canvas.alpha_composite(
+        tile, (round(slot.x * u - tile.width / 2), round(slot.y * u - tile.height / 2))
+    )
+
+
+def render_layer(name: str, keys: list[Key]) -> Path:
+    if len(keys) != len(SLOTS):
+        raise ValueError(f"layer {name!r}: expected {len(SLOTS)} keys, got {len(keys)}")
+    u = UNIT * SS
+    width = (2 * MIRROR_X + 2 * MARGIN) * u
+    height = (max(s.y + s.h / 2 + abs(math.sin(math.radians(s.rot))) * 0.5 for s in SLOTS) + 2 * MARGIN) * u
+    canvas = Image.new("RGBA", (round(width), round(height)), color("background"))
+    # Shift everything by the margin.
+    layer = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
+    for slot, key in zip(SLOTS, keys):
+        draw_key(layer, Slot(slot.x + MARGIN, slot.y + MARGIN, slot.w, slot.h, slot.rot), key)
+    canvas.alpha_composite(layer)
+    out = canvas.resize((canvas.width // SS, canvas.height // SS), Image.LANCZOS).convert("RGB")
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    path = OUT_DIR / f"{name}.webp"
+    out.save(path, "WEBP", quality=90, method=6)
+    return path
+
+
+def main() -> None:
+    only = set(sys.argv[1:])
+    for name, keys in LAYERS.items():
+        if only and name not in only:
+            continue
+        print(render_layer(name, keys))
+
+
+if __name__ == "__main__":
+    main()
