@@ -1,0 +1,327 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.10"
+# ///
+"""Parse a ZMK keymap into per-key tap / hold / tap+mod behaviours.
+
+Supports what this keymap uses: kp, mt, lt, mo, sk, trans, none, hold-tap,
+mod-morph and macro behaviours, plus the `MAKE_*` helper macros.
+
+Usage: scripts/keymap_parser.py [layer ...]   (default: default_layer alpha_layer)
+"""
+
+from __future__ import annotations
+
+import re
+import sys
+from dataclasses import dataclass
+from pathlib import Path
+
+KEYMAP = Path(__file__).resolve().parent.parent / "config" / "corne.keymap"
+
+# --- Key labels ---------------------------------------------------------------
+
+KEY_NAMES = {
+    "SPACE": "spc", "BACKSPACE": "bs", "BSPC": "bs", "DELETE": "del", "DEL": "del",
+    "ESC": "esc", "ESCAPE": "esc", "TAB": "tab", "ENTER": "enter", "RET": "enter",
+    "RETURN": "enter", "CAPSLOCK": "caps", "K_MUTE": "mute",
+    "UP": "↑", "DOWN": "↓", "LEFT": "←", "RIGHT": "→",
+    "LSHIFT": "SHIFT", "RSHIFT": "SHIFT", "LCMD": "CMD", "RCMD": "CMD",
+    "LGUI": "CMD", "RGUI": "CMD", "LALT": "ALT", "RALT": "ALT",
+    "LCTRL": "CTRL", "RCTRL": "CTRL",
+    "DOT": ".", "COMMA": ",", "QUESTION": "?", "EXCLAMATION": "!", "COLON": ":",
+    "SEMICOLON": ";", "SINGLE_QUOTE": "'", "SQT": "'", "DOUBLE_QUOTES": '"',
+    "GRAVE": "`", "TILDE": "~", "LBRC": "{", "RBRC": "}", "LPAR": "(", "RPAR": ")",
+    "LBKT": "[", "RBKT": "]", "LT": "<", "GT": ">", "SLASH": "/", "BACKSLASH": "\\",
+    "MINUS": "-", "EQUAL": "=", "PLUS": "+", "ASTERISK": "*", "UNDER": "_",
+    "AT": "@", "HASH": "#", "PERCENT": "%", "AMPS": "&", "PIPE": "|", "CARET": "^",
+    "DOLLAR": "$",
+}  # fmt: skip
+
+MOD_WRAPPERS = {
+    "LS": "SHIFT", "RS": "SHIFT", "LG": "CMD", "RG": "CMD",
+    "LA": "ALT", "RA": "ALT", "LC": "CTRL", "RC": "CTRL", "HY": "HYPER",
+}  # fmt: skip
+
+MOD_FLAGS = {"SFT": "SHIFT", "CTL": "CTRL", "ALT": "ALT", "GUI": "CMD"}
+
+# Number of parameters of ZMK built-in behaviours.
+BUILTIN_CELLS = {"kp": 1, "mt": 2, "lt": 2, "mo": 1, "sk": 1, "trans": 0, "none": 0}
+
+# --- Preprocessing --------------------------------------------------------------
+
+
+def strip_comments(text: str) -> str:
+    text = re.sub(r"/\*.*?\*/", "", text, flags=re.S)
+    return re.sub(r"//[^\n]*", "", text)
+
+
+def split_args(text: str, start: int) -> tuple[list[str], int]:
+    """Split macro call arguments; `start` is just after the opening paren."""
+    depth, args, cur = 1, [], []
+    for i in range(start, len(text)):
+        c = text[i]
+        if c == "(":
+            depth += 1
+        elif c == ")":
+            depth -= 1
+            if depth == 0:
+                args.append("".join(cur).strip())
+                return args, i + 1
+        if c == "," and depth == 1:
+            args.append("".join(cur).strip())
+            cur = []
+        else:
+            cur.append(c)
+    raise ValueError("unbalanced parentheses in macro call")
+
+
+def substitute(body: str, mapping: dict[str, str]) -> str:
+    def repl(m: re.Match) -> str:
+        if m.group(1) is not None:  # #param -> "value"
+            return f'"{mapping[m.group(1)]}"' if m.group(1) in mapping else m.group(0)
+        return mapping.get(m.group(2), m.group(0))
+
+    out = []
+    # Don't touch string literals (e.g. "zmk,behavior-hold-tap").
+    for part in re.split(r'("[^"]*")', body):
+        out.append(part if part.startswith('"') else re.sub(r"#(\w+)|\b(\w+)\b", repl, part))
+    return "".join(out)
+
+
+def preprocess(text: str) -> tuple[str, dict[str, str]]:
+    """Returns (text with MAKE_* macros expanded, object-like defines)."""
+    text = strip_comments(text).replace("\\\n", " ")
+    defines: dict[str, str] = {}
+    funcs: dict[str, tuple[list[str], str]] = {}
+    lines = []
+    for line in text.split("\n"):
+        if not line.lstrip().startswith("#"):
+            lines.append(line)
+            continue
+        m = re.match(r"\s*#define\s+(\w+)(\(([^)]*)\))?\s*(.*)", line)
+        if not m:
+            continue  # #include etc.
+        name, _, params, body = m.groups()
+        if params is None:
+            defines[name] = body.strip()
+        else:
+            funcs[name] = ([p.strip() for p in params.split(",")], body)
+    text = "\n".join(lines)
+
+    # Only expand the node-generating helpers; keycode macros like HY(X) are
+    # understood directly when building labels.
+    expandable = [n for n in funcs if n.startswith("MAKE_")]
+    pattern = re.compile(r"\b(" + "|".join(map(re.escape, expandable)) + r")\s*\(")
+    while m := pattern.search(text):
+        args, end = split_args(text, m.end())
+        params, body = funcs[m.group(1)]
+        mapping = {}
+        for i, p in enumerate(params):
+            if p == "...":
+                mapping["__VA_ARGS__"] = ", ".join(args[i:])
+            else:
+                mapping[p] = args[i]
+        text = text[: m.start()] + substitute(body, mapping) + text[end:]
+    return text, defines
+
+
+# --- Devicetree-ish parsing -------------------------------------------------------
+
+
+@dataclass
+class Binding:
+    ref: str
+    params: list[str]
+
+
+@dataclass
+class Behavior:
+    name: str
+    compatible: str
+    cells: int
+    bindings: list[Binding]
+    mods: list[str]
+
+
+def match_brace(text: str, open_idx: int) -> int:
+    depth = 0
+    for i in range(open_idx, len(text)):
+        if text[i] == "{":
+            depth += 1
+        elif text[i] == "}":
+            depth -= 1
+            if depth == 0:
+                return i
+    raise ValueError("unbalanced braces")
+
+
+def parse_bindings(s: str) -> list[Binding]:
+    out = []
+    for piece in s.replace("<", " ").replace(">", " ").split("&")[1:]:
+        tokens = piece.replace(",", " ").split()
+        out.append(Binding(tokens[0], tokens[1:]))
+    return out
+
+
+def parse_behaviors(text: str) -> dict[str, Behavior]:
+    behaviors = {}
+    for m in re.finditer(r"(\w+)\s*:\s*([\w-]+)\s*\{", text):
+        body = text[m.end() : match_brace(text, m.end() - 1)]
+        compat = re.search(r'compatible\s*=\s*"([^"]+)"', body)
+        cells = re.search(r"#binding-cells\s*=\s*<(\d+)>", body)
+        mods = re.search(r"\bmods\s*=\s*<(.*?)>\s*;", body, re.S)
+        bindings = re.search(r"\bbindings\s*=\s*(.*?);", body, re.S)
+        behaviors[m.group(1)] = Behavior(
+            name=m.group(1),
+            compatible=compat.group(1) if compat else "",
+            cells=int(cells.group(1)) if cells else 0,
+            bindings=parse_bindings(bindings.group(1)) if bindings else [],
+            mods=sorted({MOD_FLAGS[f] for f in re.findall(r"MOD_[LR](\w+)", mods.group(1))})
+            if mods
+            else [],
+        )
+    return behaviors
+
+
+def parse_layers(text: str) -> dict[str, list[Binding]]:
+    m = re.search(r"\bkeymap\s*\{", text)
+    block = text[m.end() : match_brace(text, m.end() - 1)]
+    return {
+        name: parse_bindings(body)
+        for name, body in re.findall(r"(\w+)\s*\{\s*bindings\s*=\s*<(.*?)>\s*;", block, re.S)
+    }
+
+
+# --- Semantics ----------------------------------------------------------------------
+
+
+@dataclass
+class ParsedKey:
+    tap: str = ""
+    hold: str = ""
+    tap_mod: str = ""  # what the key does when `mods` are held while tapping
+    mods: str = ""  # e.g. "SHIFT"
+    raw: str = ""
+
+    @property
+    def label(self) -> str:
+        """Main label: tap, plus tap+mod if it differs, e.g. "spc bs"."""
+        if self.tap_mod and self.tap_mod != self.tap:
+            return f"{self.tap} {self.tap_mod}"
+        return self.tap
+
+
+class Keymap:
+    def __init__(self, path: Path = KEYMAP):
+        text, self.defines = preprocess(path.read_text())
+        self.behaviors = parse_behaviors(text)
+        self.layers = parse_layers(text)
+
+    # keycodes
+    def code(self, code: str) -> str:
+        while code in self.defines:
+            code = self.defines[code]
+        if m := re.fullmatch(r"(\w+)\((.*)\)", code):
+            return f"{MOD_WRAPPERS.get(m.group(1), m.group(1))}+{self.code(m.group(2))}"
+        if code in KEY_NAMES:
+            return KEY_NAMES[code]
+        if re.fullmatch(r"N\d", code):
+            return code[1:]
+        if re.fullmatch(r"[A-Z]", code) or re.fullmatch(r"F\d+", code):
+            return code
+        return code.lower().replace("_", " ")
+
+    def layer_name(self, name: str) -> str:
+        return name.replace("_", " ")
+
+    def cells(self, ref: str) -> int:
+        if ref in self.behaviors:
+            return self.behaviors[ref].cells
+        return BUILTIN_CELLS.get(ref, 0)
+
+    def resolve(self, b: Binding) -> ParsedKey:
+        p = b.params
+        match b.ref:
+            case "kp":
+                return ParsedKey(tap=self.code(p[0]))
+            case "mt":
+                return ParsedKey(tap=self.code(p[1]), hold=self.code(p[0]))
+            case "lt":
+                return ParsedKey(tap=self.code(p[1]), hold=self.layer_name(p[0]))
+            case "mo":
+                return ParsedKey(hold=self.layer_name(p[0]))
+            case "sk":
+                return ParsedKey(tap=f"sticky {self.code(p[0])}")
+            case "trans":
+                return ParsedKey(tap="▽")
+            case "none":
+                return ParsedKey()
+            case "bootloader":
+                return ParsedKey(tap="boot")
+            case "bt":
+                return ParsedKey(tap=" ".join(["bt", *p]).lower())
+
+        beh = self.behaviors.get(b.ref)
+        if beh is None:
+            return ParsedKey(tap=f"&{b.ref}")
+        if "macro" in beh.compatible:
+            return ParsedKey(tap=beh.name)
+        if "mod-morph" in beh.compatible:
+            normal, morphed = (self.resolve(self.fill(x, [])) for x in beh.bindings[:2])
+            return ParsedKey(
+                tap=normal.tap, hold=normal.hold,
+                tap_mod=morphed.tap, mods="+".join(beh.mods),
+            )  # fmt: skip
+        if "hold-tap" in beh.compatible:
+            hold_b, tap_b = beh.bindings[:2]
+            h = self.resolve(self.fill(hold_b, p[0:1]))
+            t = self.resolve(self.fill(tap_b, p[1:2]))
+            return ParsedKey(tap=t.tap, hold=h.tap or h.hold, tap_mod=t.tap_mod, mods=t.mods)
+        return ParsedKey(tap=f"&{b.ref}")
+
+    def fill(self, b: Binding, params: list[str]) -> Binding:
+        """Behaviours nested in hold-tap may take their parameters from it."""
+        if b.params or not self.cells(b.ref):
+            return b
+        return Binding(b.ref, params[: self.cells(b.ref)])
+
+    def layer(self, name: str) -> list[ParsedKey]:
+        keys = []
+        for b in self.layers[name]:
+            k = self.resolve(b)
+            k.raw = " ".join(["&" + b.ref, *b.params])
+            keys.append(k)
+        return keys
+
+
+# --- CLI ------------------------------------------------------------------------------
+
+
+def position(i: int) -> str:
+    if i < 30:
+        row, c = divmod(i, 10)
+        return f"{'L' if c < 5 else 'R'} row{row} col{c % 5}"
+    t = i - 30
+    return f"{'L' if t < 3 else 'R'} thumb{t % 3}"
+
+
+def main() -> None:
+    km = Keymap()
+    names = sys.argv[1:] or ["default_layer", "alpha_layer"]
+    for name in names:
+        keys = km.layer(name)
+        print(f"\n== {name} ({len(keys)} keys) ==")
+        cols = ("pos", "binding", "tap", "hold", "tap+mod", "mods", "LABEL")
+        rows = [
+            (position(i), k.raw, k.tap, k.hold, k.tap_mod if k.tap_mod != k.tap else "",
+             k.mods if k.tap_mod != k.tap else "", k.label)
+            for i, k in enumerate(keys)
+        ]  # fmt: skip
+        widths = [max(len(str(r[c])) for r in [cols, *rows]) for c in range(len(cols))]
+        for r in [cols, *rows]:
+            print("  ".join(str(v).ljust(w) for v, w in zip(r, widths)).rstrip())
+
+
+if __name__ == "__main__":
+    main()
