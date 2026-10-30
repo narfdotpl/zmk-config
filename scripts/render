@@ -14,6 +14,8 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
+from keymap_parser import Keymap, ParsedKey
+
 ROOT = Path(__file__).resolve().parent.parent
 OUT_DIR = ROOT / "images" / "layers"
 
@@ -25,6 +27,7 @@ PALETTE = {
     "key_border": "#3e4451",
     "fg": "#abb2bf",
     "muted": "#5c6370",
+    "cross": "#4b5263",
     "red": "#e06c75",
     "green": "#98c379",
     "yellow": "#e5c07b",
@@ -77,16 +80,18 @@ def _mirror(s: Slot) -> Slot:
 
 
 def build_slots() -> list[Slot]:
-    """36 slots. Order: left 3x5 rows, right 3x5 rows (visual order), left
-    thumbs (L->R), right thumbs (L->R)."""
+    """36 slots in ZMK keymap order: for each of the 3 rows 5 left keys then
+    5 right keys (left -> right), then 3 left thumbs, then 3 right thumbs."""
     left = _left_slots()
     left_main, left_thumbs = left[:15], left[15:]
-    right_main: list[Slot] = []
+    slots: list[Slot] = []
     for row in range(3):
-        row_slots = [_mirror(s) for s in left_main[row * 5 : row * 5 + 5]]
-        right_main += sorted(row_slots, key=lambda s: s.x)
-    right_thumbs = sorted((_mirror(s) for s in left_thumbs), key=lambda s: s.x)
-    return left_main + right_main + left_thumbs + right_thumbs
+        slots += left_main[row * 5 : row * 5 + 5]
+        mirrored = [_mirror(s) for s in left_main[row * 5 : row * 5 + 5]]
+        slots += sorted(mirrored, key=lambda s: s.x)
+    slots += left_thumbs
+    slots += sorted((_mirror(s) for s in left_thumbs), key=lambda s: s.x)
+    return slots
 
 
 SLOTS = build_slots()
@@ -102,42 +107,42 @@ class Key:
     label_color: str = "fg"
     hold_color: str = "muted"
     bg: str | None = None  # palette name; None -> default key color
+    none: bool = False  # disabled key, drawn crossed out
 
 
-def K(label="", hold="", color="fg", hold_color="muted", bg=None) -> Key:
-    return Key(label, hold, color, hold_color, bg)
-
-
-def base_layer() -> list[Key]:
-    left = [
-        K("Q"), K("F"), K("W"), K("P"), K("B"),
-        K("A"), K("R", "ALT"), K("S", "CMD"), K("T", "SHIFT"), K("G"),
-        K("X"), K("V"), K("C"), K("Z", "CTRL"), K("D", "ALT+X"),
-    ]  # fmt: skip
-
-    # Right half in visual order: inner column first.
-    right = [
-        K("K"), K("L"), K("U"), K("Y"), K("'"),
-        K("M"), K("N", "SHIFT"), K("E", "CMD"), K("I", "ALT"), K("O"),
-        K("J"), K("H", "CTRL"), K(".\n?"), K(",\n!"), K(":\n;"),
-    ]  # fmt: skip
-
-    thumbs_l = [
-        K("ESC\nTAB", "NUMBERS", hold_color="yellow"),
-        K("SPC  BS", "APPS", hold_color="blue"),
-        K("ENTER", "SYSTEM", hold_color="red"),
-    ]
-    thumbs_r = [
-        K("ALT+BS", "SYMBOLS", hold_color="green"),
-        K("BS  DEL", "SHIFT"),
-        K("'  \"", "ALT"),
-    ]
-    return left + right + thumbs_l + thumbs_r
-
-
-LAYERS: dict[str, list[Key]] = {
-    "base": base_layer(),
+# Hold labels (as produced by the parser) -> text and palette color.
+HOLD_DISPLAY = {"apps_and_lcmd": "APPS", "greek_mode": "GREEK"}
+HOLD_COLORS = {
+    "NUMBERS": "yellow",
+    "APPS": "blue",
+    "SYSTEM": "red",
+    "SYMBOLS": "green",
+    "GREEK": "cyan",
+    "ALPHA": "magenta",
 }
+
+RENDER_LAYERS = ["default_layer", "alpha_layer"]
+
+
+def layer_filename(name: str) -> str:
+    name = name.removesuffix("_layer")
+    return {"default": "base"}.get(name, name)
+
+
+def to_key(pk: ParsedKey) -> Key:
+    if pk.kind == "none":
+        return Key(none=True)
+    if pk.kind == "trans":
+        return Key()
+    if pk.tap_mod and pk.tap_mod != pk.tap:
+        # Short symbol pairs (". ?") are stacked, longer ones ("spc bs") inline.
+        sep = "\n" if len(pk.tap) <= 1 and len(pk.tap_mod) <= 1 else "  "
+        label = f"{pk.tap}{sep}{pk.tap_mod}"
+    else:
+        label = pk.tap
+    hold = HOLD_DISPLAY.get(pk.hold, pk.hold).upper()
+    return Key(label, hold, hold_color=HOLD_COLORS.get(hold, "muted"))
+
 
 # --- Rendering ----------------------------------------------------------------
 
@@ -195,10 +200,11 @@ def draw_key(canvas: Image.Image, slot: Slot, key: Key) -> None:
     )
 
     cx, cy = tile.width / 2, tile.height / 2
-    main_font = fit_font(d, key.label, (w - 0.2 * u), round(0.34 * u))
-    hold_font = load_font(round(0.15 * u))
+    stacked = "\n" in key.label
+    main_font = fit_font(d, key.label, (w - 0.2 * u), round((0.26 if stacked else 0.34) * u))
+    hold_font = fit_font(d, key.hold, (w - 0.2 * u), round(0.15 * u))
     if key.label:
-        ly = cy - (0.08 * u if key.hold else 0)
+        ly = cy - ((0.15 if stacked else 0.08) * u if key.hold else 0)
         d.multiline_text(
             (cx, ly), key.label, font=main_font, fill=color(key.label_color),
             anchor="mm", align="center", spacing=0.04 * u,
@@ -208,6 +214,14 @@ def draw_key(canvas: Image.Image, slot: Slot, key: Key) -> None:
             (cx, pad + h - 0.17 * u), key.hold, font=hold_font,
             fill=color(key.hold_color), anchor="mm",
         )  # fmt: skip
+
+    if key.none:
+        inset = 0.28 * u
+        x0, y0, x1, y1 = pad + inset, pad + inset, pad + w - inset, pad + h - inset
+        if h > w:  # keep the cross square on tall keys
+            y0, y1 = cy - (x1 - x0) / 2, cy + (x1 - x0) / 2
+        for line in ((x0, y0, x1, y1), (x0, y1, x1, y0)):
+            d.line(line, fill=color("cross"), width=3 * SS)
 
     if slot.rot:
         tile = tile.rotate(-slot.rot, resample=Image.BICUBIC, expand=True)
@@ -236,11 +250,10 @@ def render_layer(name: str, keys: list[Key]) -> Path:
 
 
 def main() -> None:
-    only = set(sys.argv[1:])
-    for name, keys in LAYERS.items():
-        if only and name not in only:
-            continue
-        print(render_layer(name, keys))
+    km = Keymap()
+    for name in sys.argv[1:] or RENDER_LAYERS:
+        keys = [to_key(pk) for pk in km.layer(name)]
+        print(render_layer(layer_filename(name), keys))
 
 
 if __name__ == "__main__":

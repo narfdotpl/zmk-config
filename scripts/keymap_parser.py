@@ -203,6 +203,7 @@ class ParsedKey:
     tap_mod: str = ""  # what the key does when `mods` are held while tapping
     mods: str = ""  # e.g. "SHIFT"
     raw: str = ""
+    kind: str = ""  # "trans" | "none" | "" (regular key)
 
     @property
     def label(self) -> str:
@@ -254,9 +255,9 @@ class Keymap:
             case "sk":
                 return ParsedKey(tap=f"sticky {self.code(p[0])}")
             case "trans":
-                return ParsedKey(tap="▽")
+                return ParsedKey(kind="trans")
             case "none":
-                return ParsedKey()
+                return ParsedKey(kind="none")
             case "bootloader":
                 return ParsedKey(tap="boot")
             case "bt":
@@ -295,6 +296,8 @@ class Keymap:
         return keys
 
 
+SYMBOLS = {"trans": "▽", "none": "✕"}  # display only
+
 # --- CLI ------------------------------------------------------------------------------
 
 
@@ -314,8 +317,8 @@ def main() -> None:
         print(f"\n== {name} ({len(keys)} keys) ==")
         cols = ("pos", "binding", "tap", "hold", "tap+mod", "mods", "LABEL")
         rows = [
-            (position(i), k.raw, k.tap, k.hold, k.tap_mod if k.tap_mod != k.tap else "",
-             k.mods if k.tap_mod != k.tap else "", k.label)
+            (position(i), k.raw, k.tap or SYMBOLS.get(k.kind, ""), k.hold, k.tap_mod if k.tap_mod != k.tap else "",
+             k.mods if k.tap_mod != k.tap else "", k.label or SYMBOLS.get(k.kind, ""))
             for i, k in enumerate(keys)
         ]  # fmt: skip
         widths = [max(len(str(r[c])) for r in [cols, *rows]) for c in range(len(cols))]
