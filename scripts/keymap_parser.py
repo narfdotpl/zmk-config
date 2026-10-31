@@ -12,6 +12,7 @@ Usage: scripts/keymap_parser.py [layer ...]   (default: default_layer alpha_laye
 
 from __future__ import annotations
 
+import json
 import re
 import sys
 from dataclasses import dataclass
@@ -296,8 +297,6 @@ class Keymap:
         return keys
 
 
-SYMBOLS = {"trans": "▽", "none": "✕"}  # display only
-
 # --- CLI ------------------------------------------------------------------------------
 
 
@@ -309,21 +308,32 @@ def position(i: int) -> str:
     return f"{'L' if t < 3 else 'R'} thumb{t % 3}"
 
 
+def key_to_dict(i: int, k: ParsedKey) -> dict[str, str]:
+    """Key as a dict, omitting empty fields."""
+    d = {
+        "pos": position(i),
+        "binding": k.raw,
+        "kind": k.kind,
+        "tap": k.tap,
+        "hold": k.hold,
+        "tap_mod": k.tap_mod if k.tap_mod != k.tap else "",
+        "mods": k.mods if k.tap_mod != k.tap else "",
+        "label": k.label,
+    }
+    return {name: v for name, v in d.items() if v}
+
+
 def main() -> None:
     km = Keymap()
     names = sys.argv[1:] or ["default_layer", "alpha_layer"]
-    for name in names:
-        keys = km.layer(name)
-        print(f"\n== {name} ({len(keys)} keys) ==")
-        cols = ("pos", "binding", "tap", "hold", "tap+mod", "mods", "LABEL")
-        rows = [
-            (position(i), k.raw, k.tap or SYMBOLS.get(k.kind, ""), k.hold, k.tap_mod if k.tap_mod != k.tap else "",
-             k.mods if k.tap_mod != k.tap else "", k.label or SYMBOLS.get(k.kind, ""))
-            for i, k in enumerate(keys)
-        ]  # fmt: skip
-        widths = [max(len(str(r[c])) for r in [cols, *rows]) for c in range(len(cols))]
-        for r in [cols, *rows]:
-            print("  ".join(str(v).ljust(w) for v, w in zip(r, widths)).rstrip())
+    # One key per line: readable and diff-friendly.
+    print("{")
+    for n, name in enumerate(names):
+        print(f"  {json.dumps(name)}: [")
+        keys = [key_to_dict(i, k) for i, k in enumerate(km.layer(name))]
+        print(",\n".join("    " + json.dumps(k, ensure_ascii=False) for k in keys))
+        print("  ]" + ("," if n < len(names) - 1 else ""))
+    print("}")
 
 
 if __name__ == "__main__":
