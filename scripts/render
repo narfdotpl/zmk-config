@@ -154,6 +154,9 @@ MARGIN = 0.5  # units
 SS = 2  # supersampling factor
 
 FONT_CANDIDATES = [
+    "~/Library/Fonts/0xProto-Regular.otf",
+    "/Library/Fonts/0xProto-Regular.otf",
+    "~/.local/share/fonts/0xProto-Regular.otf",
     "/System/Library/Fonts/SFNSMono.ttf",
     "/System/Library/Fonts/Menlo.ttc",
     "/Library/Fonts/Arial.ttf",
@@ -164,7 +167,7 @@ FONT_CANDIDATES = [
 def load_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     for path in FONT_CANDIDATES:
         try:
-            return ImageFont.truetype(path, size)
+            return ImageFont.truetype(str(Path(path).expanduser()), size)
         except OSError:
             continue
     return ImageFont.load_default(size)
