@@ -2,4 +2,5 @@
 
 ./scripts/start
 
-watchexec -- 'time (./scripts/build && ./scripts/flash)'
+# render writes to images/, so ignore it to avoid retriggering
+watchexec --ignore 'images/**' -- '(./scripts/render &) ; time (./scripts/build && ./scripts/flash)'
