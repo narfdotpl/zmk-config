@@ -139,11 +139,7 @@ git clone git@github.com:narfdotpl/zmk-config.git
 docker volume create --driver local -o o=bind -o type=none -o device="$HOME/github/zmk-config" zmk-config
 cd zmk-config
 git submodule update --init
-brew install pyenv pyenv-virtualenv
-pyenv install 3.11.3
-pyenv virtualenv zmk-config
-pyenv activate zmk-config
-pip install peat
+brew install watchexec
 ```
 
 ```

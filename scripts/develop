@@ -2,5 +2,4 @@
 
 ./scripts/start
 
-pyenv activate zmk-config
-ag -l | peat 'time (./scripts/build && ./scripts/flash)'
+watchexec -- 'time (./scripts/build && ./scripts/flash)'
