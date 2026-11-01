@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import math
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -42,6 +42,7 @@ PALETTE = {
     "bg_blue": "#27384a",
     "bg_magenta": "#37304a",
     "bg_cyan": "#263a3d",
+    "bg_orange": "#3a3329",
 }
 
 # --- Geometry (in key units; 1.0 = key pitch) ---------------------------------
@@ -112,13 +113,19 @@ class Key:
 
 # Hold labels (as produced by the parser) -> text and palette color.
 HOLD_DISPLAY = {"apps_and_lcmd": "APPS", "greek_mode": "GREEK"}
-HOLD_COLORS = {
-    "NUMBERS": "yellow",
-    "APPS": "blue",
-    "SYSTEM": "red",
-    "SYMBOLS": "green",
-    "GREEK": "cyan",
-    "ALPHA": "magenta",
+# Layer node name -> palette color (used for hold labels and, in the layer's
+# own render, the background of the key that activates it).
+LAYER_COLORS = {
+    "alpha_layer": "magenta",
+    "greek_layer": "cyan",
+    "system_layer": "red",
+    "bluetooth_layer": "blue",
+    "apps_layer": "blue",
+    "symbols_layer": "green",
+    "numbers_layer": "yellow",
+    "numpad_layer": "orange",
+    "f1_f12_layer": "orange",
+    "equal_operators_layer": "orange",
 }
 
 RENDER_LAYERS = ["default_layer", "alpha_layer"]
@@ -141,7 +148,7 @@ def to_key(pk: ParsedKey) -> Key:
     else:
         label = pk.tap
     hold = HOLD_DISPLAY.get(pk.hold, pk.hold).upper()
-    return Key(label, hold, hold_color=HOLD_COLORS.get(hold, "muted"))
+    return Key(label, hold, hold_color=LAYER_COLORS.get(pk.hold_layer, "muted"))
 
 
 # --- Rendering ----------------------------------------------------------------
@@ -256,6 +263,10 @@ def main() -> None:
     km = Keymap()
     for name in sys.argv[1:] or RENDER_LAYERS:
         keys = [to_key(pk) for pk in km.layer(name)]
+        # Tint the key that is held to bring this layer up.
+        if (i := km.activating_key(name)) is not None:
+            bg = "bg_" + LAYER_COLORS[name]
+            keys[i] = replace(keys[i], bg=bg)
         print(render_layer(layer_filename(name), keys))
 
 

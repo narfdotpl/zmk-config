@@ -204,6 +204,7 @@ class ParsedKey:
     tap_mod: str = ""  # what the key does when `mods` are held while tapping
     mods: str = ""  # e.g. "SHIFT"
     raw: str = ""
+    hold_layer: str = ""  # layer node name (e.g. "numbers_layer") activated by hold
     kind: str = ""  # "trans" | "none" | "" (regular key)
 
     @property
@@ -237,6 +238,21 @@ class Keymap:
     def layer_name(self, name: str) -> str:
         return name.replace("_", " ")
 
+    def layer_node(self, param: str) -> str:
+        """Layer define (e.g. NUMBERS) -> layer node name (e.g. numbers_layer)."""
+        return list(self.layers)[int(self.defines.get(param, param))]
+
+    def activating_key(self, target: str) -> int | None:
+        """Index of the key that, when held, brings up `target` (searching
+        layers in keymap order, so the default layer wins)."""
+        for name in self.layers:
+            if name == target:
+                continue
+            for i, k in enumerate(self.layer(name)):
+                if k.hold_layer == target:
+                    return i
+        return None
+
     def cells(self, ref: str) -> int:
         if ref in self.behaviors:
             return self.behaviors[ref].cells
@@ -250,9 +266,10 @@ class Keymap:
             case "mt":
                 return ParsedKey(tap=self.code(p[1]), hold=self.code(p[0]))
             case "lt":
-                return ParsedKey(tap=self.code(p[1]), hold=self.layer_name(p[0]))
+                return ParsedKey(tap=self.code(p[1]), hold=self.layer_name(p[0]),
+                                 hold_layer=self.layer_node(p[0]))
             case "mo":
-                return ParsedKey(hold=self.layer_name(p[0]))
+                return ParsedKey(hold=self.layer_name(p[0]), hold_layer=self.layer_node(p[0]))
             case "sk":
                 return ParsedKey(tap=f"sticky {self.code(p[0])}")
             case "trans":
@@ -268,18 +285,23 @@ class Keymap:
         if beh is None:
             return ParsedKey(tap=f"&{b.ref}")
         if "macro" in beh.compatible:
-            return ParsedKey(tap=beh.name)
+            # Macros that press `&mo X` bring up a layer while held.
+            layer = next((self.layer_node(x.params[0]) for x in beh.bindings if x.ref == "mo"), "")
+            return ParsedKey(tap=beh.name, hold_layer=layer)
         if "mod-morph" in beh.compatible:
             normal, morphed = (self.resolve(self.fill(x, [])) for x in beh.bindings[:2])
             return ParsedKey(
-                tap=normal.tap, hold=normal.hold,
+                tap=normal.tap, hold=normal.hold, hold_layer=normal.hold_layer,
                 tap_mod=morphed.tap, mods="+".join(beh.mods),
             )  # fmt: skip
         if "hold-tap" in beh.compatible:
             hold_b, tap_b = beh.bindings[:2]
             h = self.resolve(self.fill(hold_b, p[0:1]))
             t = self.resolve(self.fill(tap_b, p[1:2]))
-            return ParsedKey(tap=t.tap, hold=h.tap or h.hold, tap_mod=t.tap_mod, mods=t.mods)
+            return ParsedKey(
+                tap=t.tap, hold=h.tap or h.hold, hold_layer=h.hold_layer,
+                tap_mod=t.tap_mod, mods=t.mods,
+            )  # fmt: skip
         return ParsedKey(tap=f"&{b.ref}")
 
     def fill(self, b: Binding, params: list[str]) -> Binding:
@@ -316,6 +338,7 @@ def key_to_dict(i: int, k: ParsedKey) -> dict[str, str]:
         "kind": k.kind,
         "tap": k.tap,
         "hold": k.hold,
+        "hold_layer": k.hold_layer,
         "tap_mod": k.tap_mod if k.tap_mod != k.tap else "",
         "mods": k.mods if k.tap_mod != k.tap else "",
         "label": k.label,
