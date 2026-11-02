@@ -178,11 +178,28 @@ def load_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     return ImageFont.load_default(size)
 
 
+WORD_GAP = 0.3  # gap between words, in em (a regular space is ~0.6 em in mono fonts)
+
+
+def text_width(d: ImageDraw.ImageDraw, text: str, font) -> float:
+    words = text.split()
+    gap = WORD_GAP * font.size
+    return sum(d.textlength(w, font=font) for w in words) + gap * max(len(words) - 1, 0)
+
+
+def draw_text(d: ImageDraw.ImageDraw, xy: tuple[float, float], text: str, font, fill) -> None:
+    """Draw text centered at xy, with tighter spacing between words."""
+    x = xy[0] - text_width(d, text, font) / 2
+    for word in text.split():
+        d.text((x, xy[1]), word, font=font, fill=fill, anchor="lm")
+        x += d.textlength(word, font=font) + WORD_GAP * font.size
+
+
 def fit_font(d: ImageDraw.ImageDraw, text: str, max_width: float, size: int):
-    """Largest font (<= size) for which the widest line fits max_width."""
+    """Largest font (<= size) for which the text fits max_width."""
     while size > 8:
         font = load_font(size)
-        if max((d.textlength(l, font=font) for l in text.split("\n") or [""]), default=0) <= max_width:
+        if text_width(d, text, font) <= max_width:
             return font
         size -= 2
     return load_font(size)
@@ -212,15 +229,9 @@ def draw_key(canvas: Image.Image, slot: Slot, key: Key) -> None:
     hold_font = fit_font(d, key.hold, (w - 0.2 * u), round(0.15 * u))
     if key.label:
         ly = cy - (0.02 * u if key.hold else 0)
-        d.multiline_text(
-            (cx, ly), key.label, font=main_font, fill=color(key.label_color),
-            anchor="mm", align="center", spacing=0.04 * u,
-        )  # fmt: skip
+        draw_text(d, (cx, ly), key.label, main_font, color(key.label_color))
     if key.hold:
-        d.text(
-            (cx, pad + h - 0.17 * u), key.hold, font=hold_font,
-            fill=color(key.hold_color), anchor="mm",
-        )  # fmt: skip
+        draw_text(d, (cx, pad + h - 0.17 * u), key.hold, hold_font, color(key.hold_color))
 
     if key.none:
         inset = 0.28 * u
