@@ -142,6 +142,13 @@ git submodule update --init
 brew install watchexec
 ```
 
+Dependencies of the `scripts/render` script ([uv][] and the [0xProto][] font):
+
+```
+brew install uv
+brew install --cask font-0xproto
+```
+
 ```
 ./scripts/develop
 ```
@@ -165,4 +172,6 @@ Install [ZMK Tools][] VS Code plugin.
   [Hammerspoon]: https://github.com/narfdotpl/dotfiles/blob/master/home/.hammerspoon/init.lua
   [User Setup]: https://zmk.dev/docs/user-setup
   [Toolchain Setup]: https://zmk.dev/docs/development/setup
+  [uv]: https://docs.astral.sh/uv/
+  [0xProto]: https://github.com/0xType/0xProto
   [ZMK Tools]: https://marketplace.visualstudio.com/items?itemName=spadin.zmk-tools
