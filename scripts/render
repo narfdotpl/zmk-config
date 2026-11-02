@@ -142,9 +142,7 @@ def to_key(pk: ParsedKey) -> Key:
     if pk.kind == "trans":
         return Key()
     if pk.tap_mod and pk.tap_mod != pk.tap:
-        # Short symbol pairs (". ?") are stacked, longer ones ("spc bs") inline.
-        sep = "\n" if len(pk.tap) <= 1 and len(pk.tap_mod) <= 1 else "  "
-        label = f"{pk.tap}{sep}{pk.tap_mod}"
+        label = f"{pk.tap} {pk.tap_mod}"
     else:
         label = pk.tap
     hold = HOLD_DISPLAY.get(pk.hold, pk.hold).upper()
@@ -210,11 +208,10 @@ def draw_key(canvas: Image.Image, slot: Slot, key: Key) -> None:
     )
 
     cx, cy = tile.width / 2, tile.height / 2
-    stacked = "\n" in key.label
-    main_font = fit_font(d, key.label, (w - 0.2 * u), round((0.26 if stacked else 0.34) * u))
+    main_font = fit_font(d, key.label, (w - 0.2 * u), round(0.34 * u))
     hold_font = fit_font(d, key.hold, (w - 0.2 * u), round(0.15 * u))
     if key.label:
-        ly = cy - ((0.15 if stacked else 0.02) * u if key.hold else 0)
+        ly = cy - (0.02 * u if key.hold else 0)
         d.multiline_text(
             (cx, ly), key.label, font=main_font, fill=color(key.label_color),
             anchor="mm", align="center", spacing=0.04 * u,
