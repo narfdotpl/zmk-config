@@ -214,7 +214,7 @@ def draw_key(canvas: Image.Image, slot: Slot, key: Key) -> None:
     main_font = fit_font(d, key.label, (w - 0.2 * u), round((0.26 if stacked else 0.34) * u))
     hold_font = fit_font(d, key.hold, (w - 0.2 * u), round(0.15 * u))
     if key.label:
-        ly = cy - ((0.15 if stacked else 0.08) * u if key.hold else 0)
+        ly = cy - ((0.15 if stacked else 0.02) * u if key.hold else 0)
         d.multiline_text(
             (cx, ly), key.label, font=main_font, fill=color(key.label_color),
             anchor="mm", align="center", spacing=0.04 * u,
