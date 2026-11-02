@@ -147,6 +147,8 @@ SYMBOLS = {
     "CAPS": "⇪", "SPC": "␣",
 }  # fmt: skip
 # Characters that the main font lacks and are drawn with the symbol font.
+# Per-symbol size relative to the label font (the symbol font draws small).
+SYMBOL_SCALE = {"⌘": 1.4, "⇧": 1.5, "⇪": 1.5, "⌃": 1.5, "⌥": 1.4, "✦": 1.3}
 SYMBOL_CHARS = set("".join(SYMBOLS.values()) + "←↑→↓")
 
 
@@ -224,7 +226,10 @@ def runs(word: str, font) -> list[tuple[str, ImageFont.FreeTypeFont]]:
     """Split a word into runs, drawing symbol characters with the symbol font."""
     out: list[tuple[str, object]] = []
     for ch in word:
-        f = load_font(font.size, True) if ch in SYMBOL_CHARS else font
+        if ch in SYMBOL_CHARS:
+            f = load_font(round(font.size * SYMBOL_SCALE.get(ch, 1.25)), True)
+        else:
+            f = font
         if out and out[-1][1] is f:
             out[-1] = (out[-1][0] + ch, f)
         else:
