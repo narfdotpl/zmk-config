@@ -150,7 +150,6 @@ SYMBOLS = {
 # Characters that the main font lacks and are drawn with the symbol font.
 # Symbol size relative to the label font.
 SYMBOL_SCALE = 1.0
-SYMBOL_CHARS = set("".join(SYMBOLS.values()) + "←↑→↓")
 
 
 def symbolize(text: str) -> str:
@@ -161,6 +160,21 @@ def symbolize(text: str) -> str:
         parts = re.split(r"\+(?=.)", word)
         words.append("".join(SYMBOLS.get(p, p) for p in parts))
     return " ".join(words)
+
+
+GREEK = {
+    "alpha": "α", "beta": "β", "gamma": "γ", "delta": "δ", "epsilon": "ε",
+    "zeta": "ζ", "eta": "η", "theta": "θ", "iota": "ι", "kappa": "κ",
+    "lambda": "λ", "mu": "μ", "nu": "ν", "xi": "ξ", "omikron": "ο",
+    "omicron": "ο", "pi": "π", "rho": "ρ", "sigma": "σ", "tau": "τ",
+    "upsilon": "υ", "phi": "φ", "chi": "χ", "psi": "ψ", "omega": "ω",
+}  # fmt: skip
+SYMBOL_CHARS = set("".join(SYMBOLS.values()) + "←↑→↓" + "".join(GREEK.values()))
+
+
+def greekify(text: str) -> str:
+    """Turn zmk-helpers unicode bindings ("&el_alpha") into Greek letters."""
+    return re.sub(r"&el_(\w+)", lambda m: GREEK.get(m.group(1), m.group(0)), text)
 
 
 def to_key(pk: ParsedKey, label_color: str = "fg") -> Key:
@@ -177,7 +191,7 @@ def to_key(pk: ParsedKey, label_color: str = "fg") -> Key:
     else:
         label = pk.tap
     hold = symbolize(HOLD_DISPLAY.get(pk.hold, pk.hold))
-    label = symbolize(label)
+    label = symbolize(greekify(label))
     return Key(label, hold, hold_color=LAYER_COLORS.get(pk.hold_layer, "muted"),
                label_color=label_color, underline=underline)
 
