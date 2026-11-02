@@ -8,6 +8,8 @@ Supports what this keymap uses: kp, mt, lt, mo, sk, trans, none, hold-tap,
 mod-morph and macro behaviours, plus the `MAKE_*` helper macros.
 
 Usage: scripts/keymap_parser.py [layer ...]   (default: default_layer alpha_layer)
+
+Disclosure: Throughout renderer and parser, I used probabilistic automation in the form of Anthropic Claude Sonnet 5.5 used via the Pi harness. I reviewed, edited, and approved all changes.
 """
 
 from __future__ import annotations

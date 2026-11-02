@@ -3,7 +3,9 @@
 # requires-python = ">=3.10"
 # dependencies = ["pillow", "fonttools", "catppuccin"]
 # ///
-"""Render ZMK keymap layers as .webp images (36-key split keyboard)."""
+"""Render ZMK keymap layers as .webp images (36-key split keyboard).
+
+Disclosure: Throughout renderer and parser, I used probabilistic automation in the form of Anthropic Claude Sonnet 5.5 used via the Pi harness. I reviewed, edited, and approved all changes."""
 
 from __future__ import annotations
 
