@@ -145,7 +145,7 @@ def to_key(pk: ParsedKey) -> Key:
         label = f"{pk.tap} {pk.tap_mod}"
     else:
         label = pk.tap
-    hold = HOLD_DISPLAY.get(pk.hold, pk.hold).upper()
+    hold = HOLD_DISPLAY.get(pk.hold, pk.hold)
     return Key(label, hold, hold_color=LAYER_COLORS.get(pk.hold_layer, "muted"))
 
 

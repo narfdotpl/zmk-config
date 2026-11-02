@@ -20,6 +20,14 @@ from pathlib import Path
 
 KEYMAP = Path(__file__).resolve().parent.parent / "config" / "corne.keymap"
 
+# Manual overrides for generated labels (tap, hold and tap+mod). Keys are matched
+# case-insensitively against the parser's label, e.g. "ALT+X" or "SELFDOT".
+LABEL_OVERRIDES = {
+    "ALT+X": "Ź",
+    "SELFDOT": "self.",
+    "THISDOT": "this.",
+}
+
 # --- Key labels ---------------------------------------------------------------
 
 KEY_NAMES = {
@@ -235,6 +243,10 @@ class Keymap:
             return code
         return code.replace("_", " ")
 
+    @staticmethod
+    def override(label: str) -> str:
+        return LABEL_OVERRIDES.get(label.upper(), label)
+
     def layer_name(self, name: str) -> str:
         return name.replace("_", " ")
 
@@ -314,6 +326,7 @@ class Keymap:
         keys = []
         for b in self.layers[name]:
             k = self.resolve(b)
+            k.tap, k.hold, k.tap_mod = (self.override(t) for t in (k.tap, k.hold, k.tap_mod))
             k.raw = " ".join(["&" + b.ref, *b.params])
             keys.append(k)
         return keys
