@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run --script
 # /// script
 # requires-python = ">=3.10"
-# dependencies = ["pillow", "fonttools"]
+# dependencies = ["pillow", "fonttools", "catppuccin"]
 # ///
 """Render ZMK keymap layers as .webp images (36-key split keyboard)."""
 
@@ -15,6 +15,7 @@ from functools import lru_cache
 from dataclasses import dataclass, replace
 from pathlib import Path
 
+from catppuccin import PALETTE as catppuccin_palette
 from fontTools.ttLib import TTFont
 from PIL import Image, ImageDraw, ImageFont
 
@@ -23,31 +24,17 @@ from keymap_parser import Keymap, ParsedKey
 ROOT = Path(__file__).resolve().parent.parent
 OUT_DIR = ROOT / "images" / "layers"
 
-# --- Palette (One Dark Pro) --------------------------------------------------
+# --- Palette (Catppuccin Mocha) ------------------------------------------------
 
-PALETTE = {
-    "background": "#21252b",
-    "key": "#282c34",
-    "key_border": "#3e4451",
-    "fg": "#abb2bf",
-    "muted": "#5c6370",
-    "cross": "#4b5263",
-    "red": "#e06c75",
-    "green": "#98c379",
-    "yellow": "#e5c07b",
-    "blue": "#61afef",
-    "magenta": "#c678dd",
-    "cyan": "#56b6c2",
-    "orange": "#d19a66",
-    # Subtle key backgrounds
-    "bg_red": "#3b2d33",
-    "bg_green": "#2f3a2f",
-    "bg_yellow": "#3a3529",
-    "bg_blue": "#27384a",
-    "bg_magenta": "#37304a",
-    "bg_cyan": "#263a3d",
-    "bg_orange": "#3a3329",
-}
+PALETTE = catppuccin_palette.mocha.colors
+
+BG_TINT = 0.15  # strength of the accent in subtle key backgrounds
+
+
+def _blend(fg: str, bg: str, t: float) -> str:
+    f, b = (tuple(int(c[i : i + 2], 16) for i in (1, 3, 5)) for c in (fg, bg))
+    return "#" + "".join(f"{round(b[i] + (f[i] - b[i]) * t):02x}" for i in range(3))
+
 
 # --- Geometry (in key units; 1.0 = key pitch) ---------------------------------
 
@@ -109,8 +96,8 @@ assert len(SLOTS) == 36
 class Key:
     label: str = ""
     hold: str = ""
-    label_color: str = "fg"
-    hold_color: str = "muted"
+    label_color: str = "text"
+    hold_color: str = "overlay0"
     bg: str | None = None  # palette name; None -> default key color
     none: bool = False  # disabled key, drawn crossed out
     underline: tuple[int, ...] = ()  # indexes of label words to underline
@@ -121,16 +108,16 @@ HOLD_DISPLAY = {"apps_and_lcmd": "APPS", "greek_mode": "GREEK"}
 # Layer node name -> palette color (used for hold labels and, in the layer's
 # own render, the background of the key that activates it).
 LAYER_COLORS = {
-    "alpha_layer": "magenta",
-    "greek_layer": "cyan",
+    "alpha_layer": "mauve",
+    "greek_layer": "teal",
     "system_layer": "red",
     "bluetooth_layer": "blue",
     "apps_layer": "blue",
     "symbols_layer": "green",
     "numbers_layer": "yellow",
-    "numpad_layer": "orange",
-    "f1_f12_layer": "orange",
-    "equal_operators_layer": "orange",
+    "numpad_layer": "peach",
+    "f1_f12_layer": "peach",
+    "equal_operators_layer": "peach",
 }
 
 # Placeholder layers that are not worth rendering.
@@ -178,7 +165,7 @@ def greekify(text: str) -> str:
     return re.sub(r"&el_(\w+)", lambda m: GREEK.get(m.group(1), m.group(0)), text)
 
 
-def to_key(pk: ParsedKey, label_color: str = "fg") -> Key:
+def to_key(pk: ParsedKey, label_color: str = "text") -> Key:
     if pk.kind == "none":
         return Key(none=True)
     if pk.kind == "trans":
@@ -193,7 +180,7 @@ def to_key(pk: ParsedKey, label_color: str = "fg") -> Key:
         label = pk.tap
     hold = symbolize(HOLD_DISPLAY.get(pk.hold, pk.hold))
     label = symbolize(greekify(label))
-    return Key(label, hold, hold_color=LAYER_COLORS.get(pk.hold_layer, "muted"),
+    return Key(label, hold, hold_color=LAYER_COLORS.get(pk.hold_layer, "overlay0"),
                label_color=label_color, underline=underline)
 
 
@@ -314,7 +301,10 @@ def fit_font(d: ImageDraw.ImageDraw, text: str, max_width: float, size: int):
 
 
 def color(name: str) -> str:
-    return PALETTE[name]
+    """Hex for a Catppuccin color name; "bg_<name>" is a subtle tint of it."""
+    if name.startswith("bg_"):
+        return _blend(getattr(PALETTE, name[3:]).hex, PALETTE.base.hex, BG_TINT)
+    return getattr(PALETTE, name).hex
 
 
 def draw_key(canvas: Image.Image, slot: Slot, key: Key) -> None:
@@ -327,8 +317,8 @@ def draw_key(canvas: Image.Image, slot: Slot, key: Key) -> None:
     d.rounded_rectangle(
         (pad, pad, pad + w - 1, pad + h - 1),
         radius=RADIUS * u,
-        fill=color(key.bg or "key"),
-        outline=color("key_border"),
+        fill=color(key.bg or "base"),
+        outline=color("surface1"),
         width=BORDER * SS,
     )
 
@@ -347,7 +337,7 @@ def draw_key(canvas: Image.Image, slot: Slot, key: Key) -> None:
         if h > w:  # keep the cross square on tall keys
             y0, y1 = cy - (x1 - x0) / 2, cy + (x1 - x0) / 2
         for line in ((x0, y0, x1, y1), (x0, y1, x1, y0)):
-            d.line(line, fill=color("cross"), width=3 * SS)
+            d.line(line, fill=color("surface2"), width=3 * SS)
 
     if slot.rot:
         tile = tile.rotate(-slot.rot, resample=Image.BICUBIC, expand=True)
@@ -362,7 +352,7 @@ def render_layer(name: str, keys: list[Key]) -> Path:
     u = UNIT * SS
     width = (2 * MIRROR_X + 2 * MARGIN) * u
     height = (max(s.y + s.h / 2 + abs(math.sin(math.radians(s.rot))) * 0.5 for s in SLOTS) + 2 * MARGIN) * u
-    canvas = Image.new("RGBA", (round(width), round(height)), color("background"))
+    canvas = Image.new("RGBA", (round(width), round(height)), color("crust"))
     # Shift everything by the margin.
     layer = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
     for slot, key in zip(SLOTS, keys):
@@ -389,7 +379,7 @@ LEGEND_ROWS = [
 
 
 def layer_key(km: Keymap, layer: str, i: int) -> Key:
-    key = to_key(km.layer(layer)[i], LAYER_COLORS.get(layer, "fg"))
+    key = to_key(km.layer(layer)[i], LAYER_COLORS.get(layer, "text"))
     if layer in LAYER_COLORS and km.activating_key(layer) == i:
         key = replace(key, bg="bg_" + LAYER_COLORS[layer])
     return key
@@ -408,7 +398,7 @@ def render_legend(km: Keymap) -> Path:
     col_w = 1.6 * u + text_w + 0.6 * u  # key + text + gutter
     width = round(2 * MARGIN * u + cols * col_w - 0.6 * u)
     height = round(2 * MARGIN * u + row_h * per_col)
-    canvas = Image.new("RGBA", (width, height), color("background"))
+    canvas = Image.new("RGBA", (width, height), color("crust"))
     layer = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
     for i, (lname, idx, title, desc) in enumerate(LEGEND_ROWS):
@@ -418,7 +408,7 @@ def render_legend(km: Keymap) -> Path:
         kx = key_x + col * col_w
         tx = kx + 1.6 * u
         draw_key(layer, Slot((kx + 0.5 * u) / u, cy / u), key)
-        for text, font, dy, fill in ((title, title_font, -0.17, "fg"), (desc, body_font, 0.17, "muted")):
+        for text, font, dy, fill in ((title, title_font, -0.17, "text"), (desc, body_font, 0.17, "overlay0")):
             draw_text(d, (tx + text_width(d, text, font) / 2, cy + dy * u), text, font, color(fill))
     canvas.alpha_composite(layer)
     out = canvas.resize((OUT_WIDTH, round(height * OUT_WIDTH / width)), Image.LANCZOS).convert("RGB")
@@ -436,7 +426,7 @@ def main() -> None:
     names = sys.argv[1:] or [n for n in km.layers if n not in SKIP_LAYERS]
     jobs: list[tuple[str, list[Key]]] = []
     for name in names:
-        label_color = LAYER_COLORS.get(name, "fg")  # default layer stays neutral
+        label_color = LAYER_COLORS.get(name, "text")  # default layer stays neutral
         keys = [to_key(pk, label_color) for pk in km.layer(name)]
         # Tint the key that is held to bring this layer up.
         if name in LAYER_COLORS and (i := km.activating_key(name)) is not None:
