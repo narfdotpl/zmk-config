@@ -373,8 +373,59 @@ def render_layer(name: str, keys: list[Key]) -> Path:
     return path
 
 
+# (layer, key index, title, description) -- real keys from the keymap.
+LEGEND_ROWS = [
+    ("default_layer", 11, "Tap / hold", "Big label is the tap; small label at the bottom is the hold."),
+    ("default_layer", 27, "Shifted", "Second label is what you get with ⇧ held."),
+    ("default_layer", 24, "Alt", "Underlined second label is what you get with ⌥ held."),
+    ("default_layer", 30, "Layer hold", "Hold label is colored like the layer it activates."),
+    ("system_layer", 0, "Layer color", "Labels take the color of the layer they are on."),
+    ("system_layer", 32, "Activator", "Tinted key is the one you hold to reach this layer."),
+    ("alpha_layer", 9, "Transparent", "Empty key falls through to the layer below."),
+    ("apps_layer", 9, "Disabled", "Crossed out key does nothing."),
+]
+
+
+def layer_key(km: Keymap, layer: str, i: int) -> Key:
+    key = to_key(km.layer(layer)[i], LAYER_COLORS.get(layer, "fg"))
+    if layer in LAYER_COLORS and km.activating_key(layer) == i:
+        key = replace(key, bg="bg_" + LAYER_COLORS[layer])
+    return key
+
+
+def render_legend(km: Keymap) -> Path:
+    u = UNIT * SS
+    row_h = 1.25 * u
+    key_x = MARGIN * u
+    text_x = key_x + 1.6 * u
+    title_font = load_font(round(0.2 * u))
+    body_font = load_font(round(0.15 * u))
+    probe = ImageDraw.Draw(Image.new("RGB", (1, 1)))
+    text_w = max(text_width(probe, d, body_font) for *_, d in LEGEND_ROWS)
+    width = round(text_x + text_w + MARGIN * u)
+    height = round(2 * MARGIN * u + row_h * len(LEGEND_ROWS))
+    canvas = Image.new("RGBA", (width, height), color("background"))
+    layer = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(layer)
+    for i, (lname, idx, title, desc) in enumerate(LEGEND_ROWS):
+        key = layer_key(km, lname, idx)
+        cy = MARGIN * u + row_h * (i + 0.5)
+        draw_key(layer, Slot((key_x + 0.5 * u) / u, cy / u), key)
+        for text, font, dy, fill in ((title, title_font, -0.17, "fg"), (desc, body_font, 0.17, "muted")):
+            draw_text(d, (text_x + text_width(d, text, font) / 2, cy + dy * u), text, font, color(fill))
+    canvas.alpha_composite(layer)
+    out = canvas.resize((width // SS, height // SS), Image.LANCZOS).convert("RGB")
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    path = OUT_DIR / "legend.webp"
+    out.save(path, "WEBP", quality=90, method=6)
+    return path
+
+
 def main() -> None:
     km = Keymap()
+    if sys.argv[1:] == ["legend"]:
+        print(render_legend(km))
+        return
     names = sys.argv[1:] or [n for n in km.layers if n not in SKIP_LAYERS]
     for name in names:
         label_color = LAYER_COLORS.get(name, "fg")  # default layer stays neutral
@@ -384,6 +435,8 @@ def main() -> None:
             bg = "bg_" + LAYER_COLORS[name]
             keys[i] = replace(keys[i], bg=bg)
         print(render_layer(layer_filename(name), keys))
+    if not sys.argv[1:]:
+        print(render_legend(km))
 
 
 if __name__ == "__main__":
