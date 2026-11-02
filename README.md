@@ -40,19 +40,17 @@ Configuration of my Corne keyboard.
 
 ## Layers
 
-Images have not been updated [for a while](https://github.com/narfdotpl/zmk-config/compare/113ec9a057dc9de4e0a4f90d7a0cd3a8a14dcf2a...master).
-
+Layer images are auto-updated by `scripts/render`.
 
 ### Base
 
-![](images/layers/base.png)
+![](images/layers/base.webp)
+![](images/layers/legend.webp)
 
 
 ### Polemak
 
 Colemak DH modified for Polish and Vim
-
-![](images/layers/colemak-mods.png)
 
 - I write in English and Polish and I use Vim
 - I started with Colemak DH (switching from QWERTY after three decades)
@@ -72,42 +70,46 @@ Colemak DH modified for Polish and Vim
 
 Just alphabet keys with no hold behaviours.
 
+![](images/layers/alpha.webp)
+
 
 ### Greek layer
 
 Greek characters using [urob/zmk-helpers](https://github.com/urob/zmk-helpers) and a Unicode hack on macOS: [Hammerspoon bindings](https://github.com/narfdotpl/dotfiles/commit/3fc93d50cc17e3a4dcf65a74143abaeaa2d14f0d) that toggle the [Unicode input source](https://github.com/narfdotpl/narf.pl/commit/4bab2c4219e701169b5905053d3f5fc19f7d1ae6).
+
+![](images/layers/greek.webp)
 
 
 ### Apps and windows
 
 Powered by [Hammerspoon][]:
 
-![](images/layers/apps.png)
+![](images/layers/apps.webp)
 
 
 ### System
 
-![](images/layers/system.png)
+![](images/layers/system.webp)
 
 
 ### Bluetooth
 
-![](images/layers/bluetooth.png)
+![](images/layers/bluetooth.webp)
 
 
 ### Symbols and code
 
-![](images/layers/symbols.png)
+![](images/layers/symbols.webp)
 
 
 ### Numbers
 
-![](images/layers/numbers.png)
+![](images/layers/numbers.webp)
 
 
 ### F1–F12
 
-![](images/layers/f1-f12.png)
+![](images/layers/f1_f12.webp)
 
 
 ## Building firmware locally
