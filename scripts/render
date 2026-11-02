@@ -137,7 +137,7 @@ def layer_filename(name: str) -> str:
     return {"default": "base"}.get(name, name)
 
 
-def to_key(pk: ParsedKey) -> Key:
+def to_key(pk: ParsedKey, label_color: str = "fg") -> Key:
     if pk.kind == "none":
         return Key(none=True)
     if pk.kind == "trans":
@@ -151,7 +151,8 @@ def to_key(pk: ParsedKey) -> Key:
     else:
         label = pk.tap
     hold = HOLD_DISPLAY.get(pk.hold, pk.hold)
-    return Key(label, hold, hold_color=LAYER_COLORS.get(pk.hold_layer, "muted"), underline=underline)
+    return Key(label, hold, hold_color=LAYER_COLORS.get(pk.hold_layer, "muted"),
+               label_color=label_color, underline=underline)
 
 
 # --- Rendering ----------------------------------------------------------------
@@ -281,7 +282,8 @@ def render_layer(name: str, keys: list[Key]) -> Path:
 def main() -> None:
     km = Keymap()
     for name in sys.argv[1:] or RENDER_LAYERS:
-        keys = [to_key(pk) for pk in km.layer(name)]
+        label_color = LAYER_COLORS.get(name, "fg")  # default layer stays neutral
+        keys = [to_key(pk, label_color) for pk in km.layer(name)]
         # Tint the key that is held to bring this layer up.
         if (i := km.activating_key(name)) is not None:
             bg = "bg_" + LAYER_COLORS[name]
