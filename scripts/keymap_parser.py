@@ -23,9 +23,9 @@ KEYMAP = Path(__file__).resolve().parent.parent / "config" / "corne.keymap"
 # --- Key labels ---------------------------------------------------------------
 
 KEY_NAMES = {
-    "SPACE": "spc", "BACKSPACE": "bs", "BSPC": "bs", "DELETE": "del", "DEL": "del",
-    "ESC": "esc", "ESCAPE": "esc", "TAB": "tab", "ENTER": "enter", "RET": "enter",
-    "RETURN": "enter", "CAPSLOCK": "caps", "K_MUTE": "mute",
+    "SPACE": "SPC", "BACKSPACE": "BS", "BSPC": "BS", "DELETE": "DEL", "DEL": "DEL",
+    "ESC": "ESC", "ESCAPE": "ESC", "TAB": "TAB", "ENTER": "ENTER", "RET": "ENTER",
+    "RETURN": "ENTER", "CAPSLOCK": "CAPS", "K_MUTE": "MUTE",
     "UP": "↑", "DOWN": "↓", "LEFT": "←", "RIGHT": "→",
     "LSHIFT": "SHIFT", "RSHIFT": "SHIFT", "LCMD": "CMD", "RCMD": "CMD",
     "LGUI": "CMD", "RGUI": "CMD", "LALT": "ALT", "RALT": "ALT",
@@ -209,7 +209,7 @@ class ParsedKey:
 
     @property
     def label(self) -> str:
-        """Main label: tap, plus tap+mod if it differs, e.g. "spc bs"."""
+        """Main label: tap, plus tap+mod if it differs, e.g. "SPC BS"."""
         if self.tap_mod and self.tap_mod != self.tap:
             return f"{self.tap} {self.tap_mod}"
         return self.tap
@@ -233,7 +233,7 @@ class Keymap:
             return code[1:]
         if re.fullmatch(r"[A-Z]", code) or re.fullmatch(r"F\d+", code):
             return code
-        return code.lower().replace("_", " ")
+        return code.replace("_", " ")
 
     def layer_name(self, name: str) -> str:
         return name.replace("_", " ")
@@ -271,15 +271,15 @@ class Keymap:
             case "mo":
                 return ParsedKey(hold=self.layer_name(p[0]), hold_layer=self.layer_node(p[0]))
             case "sk":
-                return ParsedKey(tap=f"sticky {self.code(p[0])}")
+                return ParsedKey(tap=f"STICKY {self.code(p[0])}")
             case "trans":
                 return ParsedKey(kind="trans")
             case "none":
                 return ParsedKey(kind="none")
             case "bootloader":
-                return ParsedKey(tap="boot")
+                return ParsedKey(tap="BOOT")
             case "bt":
-                return ParsedKey(tap=" ".join(["bt", *p]).lower())
+                return ParsedKey(tap=" ".join(["BT", *p]).replace("_", " "))
 
         beh = self.behaviors.get(b.ref)
         if beh is None:
