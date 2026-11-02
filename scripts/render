@@ -191,7 +191,7 @@ def to_key(pk: ParsedKey, label_color: str = "text") -> Key:
 OUT_WIDTH = 1600  # px, width of every output image
 UNIT = OUT_WIDTH / (2 * MIRROR_X + 2 * 0.5)  # px per key unit (layer images come out OUT_WIDTH wide)
 GAP = 0.08  # gap between keys, in units
-RADIUS = 0.12  # corner radius, in units
+RADIUS = 0.12  # corner radius, in units (keys and whole image)
 BORDER = 2  # px
 MARGIN = 0.5  # units
 SS = 2  # supersampling factor
@@ -348,6 +348,15 @@ def draw_key(canvas: Image.Image, slot: Slot, key: Key) -> None:
     )
 
 
+def round_corners(img: Image.Image) -> Image.Image:
+    """Make the image corners transparent, using the same radius as the keys."""
+    mask = Image.new("L", img.size, 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, img.width - 1, img.height - 1), radius=RADIUS * UNIT * SS, fill=255)
+    img = img.copy()
+    img.putalpha(mask)
+    return img
+
+
 def render_layer(name: str, keys: list[Key]) -> Path:
     if len(keys) != len(SLOTS):
         raise ValueError(f"layer {name!r}: expected {len(SLOTS)} keys, got {len(keys)}")
@@ -360,7 +369,8 @@ def render_layer(name: str, keys: list[Key]) -> Path:
     for slot, key in zip(SLOTS, keys):
         draw_key(layer, Slot(slot.x + MARGIN, slot.y + MARGIN, slot.w, slot.h, slot.rot), key)
     canvas.alpha_composite(layer)
-    out = canvas.resize((canvas.width // SS, canvas.height // SS), Image.LANCZOS).convert("RGB")
+    canvas = round_corners(canvas)
+    out = canvas.resize((canvas.width // SS, canvas.height // SS), Image.LANCZOS)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     path = OUT_DIR / f"{name}.webp"
     out.save(path, "WEBP", quality=90, method=6)
@@ -413,7 +423,8 @@ def render_legend(km: Keymap) -> Path:
         for text, font, dy, fill in ((title, title_font, -0.17, "text"), (desc, body_font, 0.17, "overlay0")):
             draw_text(d, (tx + text_width(d, text, font) / 2, cy + dy * u), text, font, color(fill))
     canvas.alpha_composite(layer)
-    out = canvas.resize((OUT_WIDTH, round(height * OUT_WIDTH / width)), Image.LANCZOS).convert("RGB")
+    canvas = round_corners(canvas)
+    out = canvas.resize((OUT_WIDTH, round(height * OUT_WIDTH / width)), Image.LANCZOS)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     path = OUT_DIR / "legend.webp"
     out.save(path, "WEBP", quality=90, method=6)
