@@ -8,7 +8,9 @@
 from __future__ import annotations
 
 import math
+import re
 import sys
+from functools import lru_cache
 from dataclasses import dataclass, replace
 from pathlib import Path
 
@@ -138,6 +140,26 @@ def layer_filename(name: str) -> str:
     return {"default": "base"}.get(name, name)
 
 
+# Key names -> symbols. Modifiers held together are joined without "+".
+SYMBOLS = {
+    "CMD": "⌘", "SHIFT": "⇧", "ALT": "⌥", "CTRL": "⌃", "HYPER": "✦",
+    "BS": "⌫", "DEL": "⌦", "ENTER": "⏎", "TAB": "⇥", "ESC": "⎋",
+    "CAPS": "⇪", "SPC": "␣",
+}  # fmt: skip
+# Characters that the main font lacks and are drawn with the symbol font.
+SYMBOL_CHARS = set("".join(SYMBOLS.values()) + "←↑→↓")
+
+
+def symbolize(text: str) -> str:
+    """Replace key names with symbols and drop "+" between combined keys,
+    e.g. "CMD+SHIFT+4" -> "⌘⇧4". Words are kept (a lone "+" is the plus key)."""
+    words = []
+    for word in text.split():
+        parts = re.split(r"\+(?=.)", word)
+        words.append("".join(SYMBOLS.get(p, p) for p in parts))
+    return " ".join(words)
+
+
 def to_key(pk: ParsedKey, label_color: str = "fg") -> Key:
     if pk.kind == "none":
         return Key(none=True)
@@ -151,7 +173,8 @@ def to_key(pk: ParsedKey, label_color: str = "fg") -> Key:
             underline = tuple(range(first, first + len(pk.tap_mod.split())))
     else:
         label = pk.tap
-    hold = HOLD_DISPLAY.get(pk.hold, pk.hold)
+    hold = symbolize(HOLD_DISPLAY.get(pk.hold, pk.hold))
+    label = symbolize(label)
     return Key(label, hold, hold_color=LAYER_COLORS.get(pk.hold_layer, "muted"),
                label_color=label_color, underline=underline)
 
@@ -176,8 +199,17 @@ FONT_CANDIDATES = [
 ]
 
 
-def load_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
-    for path in FONT_CANDIDATES:
+SYMBOL_FONT_CANDIDATES = [
+    "/System/Library/Fonts/Menlo.ttc",
+    "/System/Library/Fonts/Apple Symbols.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
+    "/Library/Fonts/Arial Unicode.ttf",
+]
+
+
+@lru_cache(maxsize=None)
+def load_font(size: int, symbols: bool = False) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    for path in SYMBOL_FONT_CANDIDATES if symbols else FONT_CANDIDATES:
         try:
             return ImageFont.truetype(str(Path(path).expanduser()), size)
         except OSError:
@@ -188,10 +220,26 @@ def load_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
 WORD_GAP = 0.3  # gap between words, in em (a regular space is ~0.6 em in mono fonts)
 
 
+def runs(word: str, font) -> list[tuple[str, ImageFont.FreeTypeFont]]:
+    """Split a word into runs, drawing symbol characters with the symbol font."""
+    out: list[tuple[str, object]] = []
+    for ch in word:
+        f = load_font(font.size, True) if ch in SYMBOL_CHARS else font
+        if out and out[-1][1] is f:
+            out[-1] = (out[-1][0] + ch, f)
+        else:
+            out.append((ch, f))
+    return out
+
+
+def word_width(d, word: str, font) -> float:
+    return sum(d.textlength(t, font=f) for t, f in runs(word, font))
+
+
 def text_width(d: ImageDraw.ImageDraw, text: str, font) -> float:
     words = text.split()
     gap = WORD_GAP * font.size
-    return sum(d.textlength(w, font=font) for w in words) + gap * max(len(words) - 1, 0)
+    return sum(word_width(d, w, font) for w in words) + gap * max(len(words) - 1, 0)
 
 
 def draw_text(d, xy, text: str, font, fill, underline: tuple[int, ...] = ()) -> None:
@@ -201,8 +249,11 @@ def draw_text(d, xy, text: str, font, fill, underline: tuple[int, ...] = ()) -> 
     ascent, descent = font.getmetrics()
     line_y = xy[1] + (ascent - descent) / 2 + 0.14 * font.size  # just below baseline
     for i, word in enumerate(text.split()):
-        width = d.textlength(word, font=font)
-        d.text((x, xy[1]), word, font=font, fill=fill, anchor="lm")
+        width = word_width(d, word, font)
+        rx = x
+        for t, f in runs(word, font):
+            d.text((rx, xy[1]), t, font=f, fill=fill, anchor="lm")
+            rx += d.textlength(t, font=f)
         if i in underline:
             d.line((x, line_y, x + width, line_y), fill=fill, width=max(2, round(font.size * 0.06)))
         x += width + WORD_GAP * font.size
