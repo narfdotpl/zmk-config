@@ -192,6 +192,7 @@ MARGIN = 0.5  # units
 SS = 2  # supersampling factor
 
 FONT_CANDIDATES = [
+    "/System/Library/Fonts/SFNS.ttf",
     "~/Library/Fonts/0xProto-Regular.otf",
     "/Library/Fonts/0xProto-Regular.otf",
     "~/.local/share/fonts/0xProto-Regular.otf",
