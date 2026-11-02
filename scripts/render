@@ -109,6 +109,7 @@ class Key:
     hold_color: str = "muted"
     bg: str | None = None  # palette name; None -> default key color
     none: bool = False  # disabled key, drawn crossed out
+    underline: tuple[int, ...] = ()  # indexes of label words to underline
 
 
 # Hold labels (as produced by the parser) -> text and palette color.
@@ -141,12 +142,16 @@ def to_key(pk: ParsedKey) -> Key:
         return Key(none=True)
     if pk.kind == "trans":
         return Key()
+    underline: tuple[int, ...] = ()
     if pk.tap_mod and pk.tap_mod != pk.tap:
         label = f"{pk.tap} {pk.tap_mod}"
+        if pk.mods == "ALT":  # underline the alt variant
+            first = len(pk.tap.split())
+            underline = tuple(range(first, first + len(pk.tap_mod.split())))
     else:
         label = pk.tap
     hold = HOLD_DISPLAY.get(pk.hold, pk.hold)
-    return Key(label, hold, hold_color=LAYER_COLORS.get(pk.hold_layer, "muted"))
+    return Key(label, hold, hold_color=LAYER_COLORS.get(pk.hold_layer, "muted"), underline=underline)
 
 
 # --- Rendering ----------------------------------------------------------------
@@ -187,12 +192,18 @@ def text_width(d: ImageDraw.ImageDraw, text: str, font) -> float:
     return sum(d.textlength(w, font=font) for w in words) + gap * max(len(words) - 1, 0)
 
 
-def draw_text(d: ImageDraw.ImageDraw, xy: tuple[float, float], text: str, font, fill) -> None:
-    """Draw text centered at xy, with tighter spacing between words."""
+def draw_text(d, xy, text: str, font, fill, underline: tuple[int, ...] = ()) -> None:
+    """Draw text centered at xy, with tighter spacing between words.
+    Words whose index is in `underline` get underlined."""
     x = xy[0] - text_width(d, text, font) / 2
-    for word in text.split():
+    ascent, descent = font.getmetrics()
+    line_y = xy[1] + (ascent - descent) / 2 + 0.14 * font.size  # just below baseline
+    for i, word in enumerate(text.split()):
+        width = d.textlength(word, font=font)
         d.text((x, xy[1]), word, font=font, fill=fill, anchor="lm")
-        x += d.textlength(word, font=font) + WORD_GAP * font.size
+        if i in underline:
+            d.line((x, line_y, x + width, line_y), fill=fill, width=max(2, round(font.size * 0.06)))
+        x += width + WORD_GAP * font.size
 
 
 def fit_font(d: ImageDraw.ImageDraw, text: str, max_width: float, size: int):
@@ -229,7 +240,7 @@ def draw_key(canvas: Image.Image, slot: Slot, key: Key) -> None:
     hold_font = fit_font(d, key.hold, (w - 0.2 * u), round(0.15 * u))
     if key.label:
         ly = cy - (0.02 * u if key.hold else 0)
-        draw_text(d, (cx, ly), key.label, main_font, color(key.label_color))
+        draw_text(d, (cx, ly), key.label, main_font, color(key.label_color), key.underline)
     if key.hold:
         draw_text(d, (cx, pad + h - 0.17 * u), key.hold, hold_font, color(key.hold_color))
 
