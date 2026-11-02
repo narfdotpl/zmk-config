@@ -10,6 +10,7 @@ from __future__ import annotations
 import math
 import re
 import sys
+from concurrent.futures import ProcessPoolExecutor
 from functools import lru_cache
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -432,6 +433,7 @@ def main() -> None:
         print(render_legend(km))
         return
     names = sys.argv[1:] or [n for n in km.layers if n not in SKIP_LAYERS]
+    jobs: list[tuple[str, list[Key]]] = []
     for name in names:
         label_color = LAYER_COLORS.get(name, "fg")  # default layer stays neutral
         keys = [to_key(pk, label_color) for pk in km.layer(name)]
@@ -439,9 +441,15 @@ def main() -> None:
         if name in LAYER_COLORS and (i := km.activating_key(name)) is not None:
             bg = "bg_" + LAYER_COLORS[name]
             keys[i] = replace(keys[i], bg=bg)
-        print(render_layer(layer_filename(name), keys))
-    if not sys.argv[1:]:
-        print(render_legend(km))
+        jobs.append((layer_filename(name), keys))
+    # Layers are CPU-bound, so render them in parallel processes.
+    with ProcessPoolExecutor() as pool:
+        futures = [pool.submit(render_layer, n, k) for n, k in jobs]
+        legend = render_legend(km) if not sys.argv[1:] else None
+        for f in futures:
+            print(f.result())
+    if legend:
+        print(legend)
 
 
 if __name__ == "__main__":
