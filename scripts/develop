@@ -3,4 +3,4 @@
 ./scripts/start
 
 # render writes to images/, so ignore it to avoid retriggering
-watchexec --ignore 'images/**' -- '(./scripts/render &) ; time (./scripts/build && ./scripts/flash)'
+watchexec --ignore 'images/**' -- '(time ./scripts/render &) ; time (./scripts/build && ./scripts/flash)'
