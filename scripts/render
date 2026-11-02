@@ -129,7 +129,8 @@ LAYER_COLORS = {
     "equal_operators_layer": "orange",
 }
 
-RENDER_LAYERS = ["default_layer", "alpha_layer"]
+# Placeholder layers that are not worth rendering.
+SKIP_LAYERS = {"trans_layer", "none_layer"}
 
 
 def layer_filename(name: str) -> str:
@@ -281,11 +282,12 @@ def render_layer(name: str, keys: list[Key]) -> Path:
 
 def main() -> None:
     km = Keymap()
-    for name in sys.argv[1:] or RENDER_LAYERS:
+    names = sys.argv[1:] or [n for n in km.layers if n not in SKIP_LAYERS]
+    for name in names:
         label_color = LAYER_COLORS.get(name, "fg")  # default layer stays neutral
         keys = [to_key(pk, label_color) for pk in km.layer(name)]
         # Tint the key that is held to bring this layer up.
-        if (i := km.activating_key(name)) is not None:
+        if name in LAYER_COLORS and (i := km.activating_key(name)) is not None:
             bg = "bg_" + LAYER_COLORS[name]
             keys[i] = replace(keys[i], bg=bg)
         print(render_layer(layer_filename(name), keys))
