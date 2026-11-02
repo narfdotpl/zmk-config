@@ -199,7 +199,8 @@ def to_key(pk: ParsedKey, label_color: str = "fg") -> Key:
 
 # --- Rendering ----------------------------------------------------------------
 
-UNIT = 110  # px per key unit
+OUT_WIDTH = 1600  # px, width of every output image
+UNIT = OUT_WIDTH / (2 * MIRROR_X + 2 * 0.5)  # px per key unit (layer images come out OUT_WIDTH wide)
 GAP = 0.08  # gap between keys, in units
 RADIUS = 0.12  # corner radius, in units
 BORDER = 2  # px
@@ -420,7 +421,7 @@ def render_legend(km: Keymap) -> Path:
         for text, font, dy, fill in ((title, title_font, -0.17, "fg"), (desc, body_font, 0.17, "muted")):
             draw_text(d, (tx + text_width(d, text, font) / 2, cy + dy * u), text, font, color(fill))
     canvas.alpha_composite(layer)
-    out = canvas.resize((width // SS, height // SS), Image.LANCZOS).convert("RGB")
+    out = canvas.resize((OUT_WIDTH, round(height * OUT_WIDTH / width)), Image.LANCZOS).convert("RGB")
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     path = OUT_DIR / "legend.webp"
     out.save(path, "WEBP", quality=90, method=6)
