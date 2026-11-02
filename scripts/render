@@ -397,22 +397,27 @@ def render_legend(km: Keymap) -> Path:
     u = UNIT * SS
     row_h = 1.25 * u
     key_x = MARGIN * u
-    text_x = key_x + 1.6 * u
     title_font = load_font(round(0.2 * u))
     body_font = load_font(round(0.15 * u))
     probe = ImageDraw.Draw(Image.new("RGB", (1, 1)))
     text_w = max(text_width(probe, d, body_font) for *_, d in LEGEND_ROWS)
-    width = round(text_x + text_w + MARGIN * u)
-    height = round(2 * MARGIN * u + row_h * len(LEGEND_ROWS))
+    cols = 2
+    per_col = math.ceil(len(LEGEND_ROWS) / cols)
+    col_w = 1.6 * u + text_w + 0.6 * u  # key + text + gutter
+    width = round(2 * MARGIN * u + cols * col_w - 0.6 * u)
+    height = round(2 * MARGIN * u + row_h * per_col)
     canvas = Image.new("RGBA", (width, height), color("background"))
     layer = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
     for i, (lname, idx, title, desc) in enumerate(LEGEND_ROWS):
         key = layer_key(km, lname, idx)
-        cy = MARGIN * u + row_h * (i + 0.5)
-        draw_key(layer, Slot((key_x + 0.5 * u) / u, cy / u), key)
+        col, row = divmod(i, per_col)  # fill column by column
+        cy = MARGIN * u + row_h * (row + 0.5)
+        kx = key_x + col * col_w
+        tx = kx + 1.6 * u
+        draw_key(layer, Slot((kx + 0.5 * u) / u, cy / u), key)
         for text, font, dy, fill in ((title, title_font, -0.17, "fg"), (desc, body_font, 0.17, "muted")):
-            draw_text(d, (text_x + text_width(d, text, font) / 2, cy + dy * u), text, font, color(fill))
+            draw_text(d, (tx + text_width(d, text, font) / 2, cy + dy * u), text, font, color(fill))
     canvas.alpha_composite(layer)
     out = canvas.resize((width // SS, height // SS), Image.LANCZOS).convert("RGB")
     OUT_DIR.mkdir(parents=True, exist_ok=True)
