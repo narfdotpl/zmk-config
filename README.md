@@ -52,6 +52,8 @@ Layer images are auto-updated by `scripts/render`.
 
 Colemak DH modified for Polish and Vim
 
+![](images/layers/polemak.webp)
+
 - I write in English and Polish and I use Vim
 - I started with Colemak DH (switching from QWERTY after three decades)
 - swapped `J` and `K` so they're not up side down in Vim

@@ -103,6 +103,7 @@ class Key:
     bg: str | None = None  # palette name; None -> default key color
     none: bool = False  # disabled key, drawn crossed out
     underline: tuple[int, ...] = ()  # indexes of label words to underline
+    striped: bool = False  # diagonal stripes on the background (marks a difference)
 
 
 # Hold labels (as produced by the parser) -> text and palette color.
@@ -195,6 +196,9 @@ RADIUS = 0.12  # corner radius, in units (keys and whole image)
 BORDER = 2  # px
 MARGIN = 0.5  # units
 SS = 2  # supersampling factor
+STRIPE_TINT = 0.4  # strength of the yellow in stripes
+STRIPE_WIDTH = 0.05  # units
+STRIPE_PERIOD = 0.16  # units, distance between stripe starts (measured along an axis)
 
 FONT_CANDIDATES = [
     "~/Library/Fonts/0xProto-Regular.otf",
@@ -309,6 +313,25 @@ def color(name: str) -> str:
     return getattr(PALETTE, name).hex
 
 
+def stripes(size: tuple[int, int], box: tuple[int, int, int, int], rot: float) -> Image.Image:
+    """45° stripes (in the final image, so counter-rotated by the key's
+    rotation) clipped to the rounded key rectangle `box`."""
+    u = UNIT * SS
+    n = 2 * max(size)
+    layer = Image.new("RGBA", (n, n), (0, 0, 0, 0))
+    d = ImageDraw.Draw(layer)
+    period = STRIPE_PERIOD * u * math.sqrt(2)
+    for k in range(-2 * n, 2 * n, max(1, round(period))):
+        d.line((k, n, k + n, 0), fill=_blend(PALETTE.yellow.hex, PALETTE.base.hex, STRIPE_TINT), width=round(STRIPE_WIDTH * u * math.sqrt(2)))
+    layer = layer.rotate(rot, resample=Image.BICUBIC)
+    left, top = (n - size[0]) // 2, (n - size[1]) // 2
+    layer = layer.crop((left, top, left + size[0], top + size[1]))
+    mask = Image.new("L", size, 0)
+    ImageDraw.Draw(mask).rounded_rectangle(box, radius=RADIUS * u, fill=255)
+    layer.putalpha(Image.composite(layer.getchannel("A"), Image.new("L", size, 0), mask))
+    return layer
+
+
 def draw_key(canvas: Image.Image, slot: Slot, key: Key) -> None:
     u = UNIT * SS
     w = round((slot.w - GAP) * u)
@@ -323,6 +346,16 @@ def draw_key(canvas: Image.Image, slot: Slot, key: Key) -> None:
         outline=color("surface1"),
         width=BORDER * SS,
     )
+
+    if key.striped:
+        tile.alpha_composite(stripes(tile.size, (pad, pad, pad + w - 1, pad + h - 1), slot.rot))
+        d = ImageDraw.Draw(tile)
+        d.rounded_rectangle(
+            (pad, pad, pad + w - 1, pad + h - 1),
+            radius=RADIUS * u,
+            outline=color("surface1"),
+            width=BORDER * SS,
+        )
 
     cx, cy = tile.width / 2, tile.height / 2
     main_font = fit_font(d, key.label, (w - 0.2 * u), round(0.34 * u))
@@ -386,10 +419,29 @@ LEGEND_ROWS = [
     ("system_layer", 32, "Layer activator", "Tinted key is the one you hold to reach this layer."),
     ("alpha_layer", 9, "Transparent", "Empty key falls through to the layer below."),
     ("apps_layer", 9, "Disabled", "Crossed out key does nothing."),
+    ("polemak", 23, "Striped", "Different than in Colemak DH."),
 ]
 
 
+# Colemak DH letters (30 alpha keys, row by row) that Polemak is compared against.
+COLEMAK_DH = "QWFPBJLUY;ARSTGMNEIOZXCDVKH,./"
+
+
+def polemak_keys(km: Keymap) -> list[Key]:
+    """The alpha layer with non-letter keys transparent and keys that differ
+    from Colemak DH striped."""
+    keys = []
+    for i, pk in enumerate(km.layer("alpha_layer")):
+        if not pk.kind and len(pk.tap) == 1 and pk.tap.isalpha() and i < len(COLEMAK_DH):
+            keys.append(Key(pk.tap, label_color=LAYER_COLORS["alpha_layer"], striped=pk.tap != COLEMAK_DH[i]))
+        else:
+            keys.append(Key())
+    return keys
+
+
 def layer_key(km: Keymap, layer: str, i: int) -> Key:
+    if layer == "polemak":
+        return polemak_keys(km)[i]
     key = to_key(km.layer(layer)[i], LAYER_COLORS.get(layer, "text"))
     if layer in LAYER_COLORS and km.activating_key(layer) == i:
         key = replace(key, bg="bg_" + LAYER_COLORS[layer])
@@ -440,9 +492,12 @@ def main() -> None:
     if sys.argv[1:] == ["legend"]:
         print(render_legend(km))
         return
-    names = sys.argv[1:] or [n for n in km.layers if n not in SKIP_LAYERS]
+    names = sys.argv[1:] or [n for n in km.layers if n not in SKIP_LAYERS] + ["polemak"]
     jobs: list[tuple[str, list[Key]]] = []
     for name in names:
+        if name == "polemak":
+            jobs.append((name, polemak_keys(km)))
+            continue
         label_color = LAYER_COLORS.get(name, "text")  # default layer stays neutral
         keys = [to_key(pk, label_color) for pk in km.layer(name)]
         # Tint the key that is held to bring this layer up.
