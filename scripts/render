@@ -9,8 +9,11 @@ Disclosure: Throughout renderer and parser, I used probabilistic automation in t
 
 from __future__ import annotations
 
+import json
 import math
 import re
+import shutil
+import subprocess
 import sys
 from concurrent.futures import ProcessPoolExecutor
 from functools import lru_cache
@@ -127,6 +130,52 @@ LAYER_COLORS = {
 SKIP_LAYERS = {"trans_layer", "none_layer"}
 
 
+# ast-grep rule: `key = "App"` fields of the table that a Hammerspoon loop
+# feeds to hs.application.launchOrFocus.
+HAMMERSPOON_INIT = Path("~/.hammerspoon/init.lua").expanduser()
+HYPER_APPS_RULE = """
+id: hyper-app
+language: lua
+rule:
+  kind: field
+  all:
+    - has: {field: name, kind: identifier, pattern: $KEY}
+    - has: {field: value, kind: string, pattern: $APP}
+  inside:
+    stopBy: end
+    kind: for_statement
+    has:
+      stopBy: end
+      pattern: hs.application.launchOrFocus($$$)
+"""
+
+
+# Long app names that would shrink to unreadable on a key.
+APP_SHORT_NAMES = {
+    "Visual Studio Code": "VS Code",
+    "Things3": "Things",
+    "Ableton Live 12 Suite": "Ableton",
+}
+
+
+@lru_cache(maxsize=None)
+def hyper_apps() -> dict[str, str]:
+    """Hyper+key -> name of the app it opens, read from Hammerspoon's config
+    with ast-grep. Empty if either is missing."""
+    if not (shutil.which("ast-grep") and HAMMERSPOON_INIT.exists()):
+        return {}
+    out = subprocess.run(
+        ["ast-grep", "scan", "--inline-rules", HYPER_APPS_RULE, "--json=compact", str(HAMMERSPOON_INIT)],
+        capture_output=True, text=True,
+    ).stdout
+    apps = {}
+    for m in json.loads(out or "[]"):
+        v = m["metaVariables"]["single"]
+        app = v["APP"]["text"].strip("\"'")
+        apps[v["KEY"]["text"].upper()] = APP_SHORT_NAMES.get(app, app)
+    return apps
+
+
 def layer_filename(name: str) -> str:
     name = name.removesuffix("_layer")
     return {"default": "base"}.get(name, name)
@@ -181,6 +230,8 @@ def to_key(pk: ParsedKey, label_color: str = "text") -> Key:
             underline = tuple(range(first, first + len(pk.tap_mod.split())))
     else:
         label = pk.tap
+    if label.startswith("HYPER+") and (app := hyper_apps().get(label.removeprefix("HYPER+"))):
+        label = app
     hold = symbolize(HOLD_DISPLAY.get(pk.hold, pk.hold))
     label = symbolize(greekify(label))
     return Key(label, hold, hold_color=LAYER_COLORS.get(pk.hold_layer, "overlay0"),
