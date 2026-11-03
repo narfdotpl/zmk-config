@@ -285,7 +285,7 @@ class Keymap:
             case "mo":
                 return ParsedKey(hold=self.layer_name(p[0]), hold_layer=self.layer_node(p[0]))
             case "sk":
-                return ParsedKey(tap=f"STICKY {self.code(p[0])}")
+                return ParsedKey(tap=f"sticky {self.code(p[0])}")
             case "trans":
                 return ParsedKey(kind="trans")
             case "none":
