@@ -379,12 +379,11 @@ def render_layer(name: str, keys: list[Key]) -> Path:
 
 # (layer, key index, title, description) -- real keys from the keymap.
 LEGEND_ROWS = [
-    ("default_layer", 11, "Tap / hold", "Big label is the tap; small label at the bottom is the hold."),
-    ("default_layer", 27, "Shifted", "Second label is what you get with ⇧ held."),
-    ("default_layer", 24, "Alt", "Underlined second label is what you get with ⌥ held."),
-    ("default_layer", 30, "Layer hold", "Hold label is colored like the layer it activates."),
-    ("system_layer", 0, "Layer color", "Labels take the color of the layer they are on."),
-    ("system_layer", 32, "Activator", "Tinted key is the one you hold to reach this layer."),
+    ("default_layer", 0, "Tap / hold", "Big label is the tap.\nSmall label at the bottom is the hold."),
+    ("default_layer", 27, "Shift tap", "Right label is what you get with ⇧ held."),
+    ("default_layer", 24, "Alt tap", "Underlined right label is what you get with ⌥ held."),
+    ("default_layer", 30, "Layer color", "Hold label is colored like the layer it activates."),
+    ("system_layer", 32, "Layer activator", "Tinted key is the one you hold to reach this layer."),
     ("alpha_layer", 9, "Transparent", "Empty key falls through to the layer below."),
     ("apps_layer", 9, "Disabled", "Crossed out key does nothing."),
 ]
@@ -404,7 +403,8 @@ def render_legend(km: Keymap) -> Path:
     title_font = load_font(round(0.2 * u))
     body_font = load_font(round(0.15 * u))
     probe = ImageDraw.Draw(Image.new("RGB", (1, 1)))
-    text_w = max(text_width(probe, d, body_font) for *_, d in LEGEND_ROWS)
+    text_w = max(text_width(probe, line, body_font)
+                 for *_, d in LEGEND_ROWS for line in d.split("\n"))
     cols = 2
     per_col = math.ceil(len(LEGEND_ROWS) / cols)
     col_w = 1.6 * u + text_w + 0.6 * u  # key + text + gutter
@@ -420,7 +420,11 @@ def render_legend(km: Keymap) -> Path:
         kx = key_x + col * col_w
         tx = kx + 1.6 * u
         draw_key(layer, Slot((kx + 0.5 * u) / u, cy / u), key)
-        for text, font, dy, fill in ((title, title_font, -0.17, "text"), (desc, body_font, 0.17, "overlay0")):
+        lines = desc.split("\n")
+        shift = -0.1 * (len(lines) - 1)
+        rows = [(title, title_font, -0.17 + shift, "text")]
+        rows += [(ln, body_font, 0.17 + shift + 0.2 * j, "overlay0") for j, ln in enumerate(lines)]
+        for text, font, dy, fill in rows:
             draw_text(d, (tx + text_width(d, text, font) / 2, cy + dy * u), text, font, color(fill))
     canvas.alpha_composite(layer)
     canvas = round_corners(canvas)
