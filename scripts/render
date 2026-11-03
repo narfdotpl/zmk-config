@@ -563,7 +563,7 @@ def polemak_keys(km: Keymap) -> list[Key]:
     keys = []
     for i, pk in enumerate(km.layer("alpha_layer")):
         if not pk.kind and len(pk.tap) == 1 and pk.tap.isalpha() and i < len(COLEMAK_DH):
-            keys.append(Key(pk.tap, label_color=LAYER_COLORS["alpha_layer"], striped=pk.tap != COLEMAK_DH[i]))
+            keys.append(Key(pk.tap, striped=pk.tap != COLEMAK_DH[i]))
         else:
             keys.append(Key())
     return keys
