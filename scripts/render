@@ -130,11 +130,14 @@ LAYER_COLORS = {
 SKIP_LAYERS = {"trans_layer", "none_layer"}
 
 
-# ast-grep rule: `key = "App"` fields of the table that a Hammerspoon loop
-# feeds to hs.application.launchOrFocus.
+# ast-grep rules over Hammerspoon's config. `app` matches `key = "App"` fields
+# of the table that a loop feeds to hs.application.launchOrFocus; the others find
+# how window binds change the size: `size` matches assignments to the window
+# width/height, `bind` the hyper binds, `loop` the loops over a table of binds
+# and `field` the `key = value` entries of those tables.
 HAMMERSPOON_INIT = Path("~/.hammerspoon/init.lua").expanduser()
-HYPER_APPS_RULE = """
-id: hyper-app
+HAMMERSPOON_RULES = """
+id: app
 language: lua
 rule:
   kind: field
@@ -147,6 +150,34 @@ rule:
     has:
       stopBy: end
       pattern: hs.application.launchOrFocus($$$)
+---
+id: size
+language: lua
+rule:
+  any:
+    - pattern: w.w = $E * s.w
+    - pattern: w.h = $E * s.h
+    - pattern: w.w = s.w
+    - pattern: w.h = s.h
+---
+id: bind
+language: lua
+rule:
+  pattern: hs.hotkey.bind(hyper, $KEY, updateWindowFrame($$$))
+---
+id: loop
+language: lua
+rule:
+  kind: for_statement
+  has: {stopBy: end, pattern: updateWindowFrame($$$)}
+---
+id: field
+language: lua
+rule:
+  kind: field
+  all:
+    - has: {field: name, kind: identifier, pattern: $KEY}
+    - has: {field: value, pattern: $VAL}
 """
 
 
@@ -158,22 +189,60 @@ APP_SHORT_NAMES = {
 }
 
 
+def _size_label(w: str | None, h: str | None) -> str:
+    """Label for a bind that sets the window width and/or height."""
+    if w is not None and h is not None:
+        return f"{w}×{h}"
+    return f"↔{w}" if w is not None else f"↕{h}"
+
+
 @lru_cache(maxsize=None)
-def hyper_apps() -> dict[str, str]:
-    """Hyper+key -> name of the app it opens, read from Hammerspoon's config
-    with ast-grep. Empty if either is missing."""
+def hyper_labels() -> dict[str, str]:
+    """Hyper+key -> what it does (app to open, window resize), read from
+    Hammerspoon's config with ast-grep. Empty if either is missing."""
     if not (shutil.which("ast-grep") and HAMMERSPOON_INIT.exists()):
         return {}
     out = subprocess.run(
-        ["ast-grep", "scan", "--inline-rules", HYPER_APPS_RULE, "--json=compact", str(HAMMERSPOON_INIT)],
+        ["ast-grep", "scan", "--inline-rules", HAMMERSPOON_RULES, "--json=compact", str(HAMMERSPOON_INIT)],
         capture_output=True, text=True,
     ).stdout
-    apps = {}
-    for m in json.loads(out or "[]"):
-        v = m["metaVariables"]["single"]
-        app = v["APP"]["text"].strip("\"'")
-        apps[v["KEY"]["text"].upper()] = APP_SHORT_NAMES.get(app, app)
-    return apps
+    matches = json.loads(out or "[]")
+
+    def span(m) -> tuple[int, int]:
+        return m["range"]["byteOffset"]["start"], m["range"]["byteOffset"]["end"]
+
+    def inside(m, outer) -> bool:
+        return span(outer)[0] <= span(m)[0] and span(m)[1] <= span(outer)[1]
+
+    def var(m, name: str) -> str:
+        return m["metaVariables"]["single"][name]["text"].strip("\"'")
+
+    def sizes(scope, ratio: str | None = None) -> tuple[str | None, str | None]:
+        """Width and height ratios assigned inside `scope` (`ratio` stands in
+        for the loop variable)."""
+        found = {}
+        for m in matches:
+            if m["ruleId"] == "size" and inside(m, scope):
+                ref = m.get("metaVariables", {}).get("single", {}).get("E", {}).get("text", "1")
+                found[m["text"][2]] = ratio if ref == "ratio" and ratio else ref
+        return found.get("w"), found.get("h")
+
+    labels = {}
+    for m in matches:
+        if m["ruleId"] == "app":
+            app = var(m, "APP")
+            labels[var(m, "KEY").upper()] = APP_SHORT_NAMES.get(app, app)
+    for loop in (m for m in matches if m["ruleId"] == "loop"):
+        for f in (m for m in matches if m["ruleId"] == "field" and inside(m, loop)):
+            w, h = sizes(loop, var(f, "VAL"))
+            if w is not None or h is not None:
+                labels[var(f, "KEY").upper()] = _size_label(w, h)
+    for bind in (m for m in matches if m["ruleId"] == "bind"):
+        key = bind["metaVariables"]["single"]["KEY"]
+        if key["text"].startswith('"'):  # loop binds use the loop variable
+            w, h = sizes(bind)
+            labels[var(bind, "KEY").upper()] = _size_label(w, h) if w or h else "center"
+    return labels
 
 
 def layer_filename(name: str) -> str:
@@ -209,7 +278,7 @@ GREEK = {
     "omicron": "ο", "pi": "π", "rho": "ρ", "sigma": "σ", "tau": "τ",
     "upsilon": "υ", "phi": "φ", "chi": "χ", "psi": "ψ", "omega": "ω",
 }  # fmt: skip
-SYMBOL_CHARS = set("".join(SYMBOLS.values()) + "←↑→↓" + "".join(GREEK.values()))
+SYMBOL_CHARS = set("".join(SYMBOLS.values()) + "←↑→↓↔↕" + "".join(GREEK.values()))
 
 
 def greekify(text: str) -> str:
@@ -230,7 +299,7 @@ def to_key(pk: ParsedKey, label_color: str = "text") -> Key:
             underline = tuple(range(first, first + len(pk.tap_mod.split())))
     else:
         label = pk.tap
-    if label.startswith("HYPER+") and (app := hyper_apps().get(label.removeprefix("HYPER+"))):
+    if label.startswith("HYPER+") and (app := hyper_labels().get(label.removeprefix("HYPER+"))):
         label = app
     hold = symbolize(HOLD_DISPLAY.get(pk.hold, pk.hold))
     label = symbolize(greekify(label))
