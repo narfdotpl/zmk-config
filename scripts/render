@@ -526,7 +526,7 @@ def render_layer(name: str, keys: list[Key]) -> Path:
     out = canvas.resize((canvas.width // SS, canvas.height // SS), Image.LANCZOS)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     path = OUT_DIR / f"{name}.webp"
-    out.save(path, "WEBP", quality=90, method=6)
+    out.save(path, "WEBP", quality=90, method=5)
     return path
 
 
@@ -603,7 +603,7 @@ def render_legend(km: Keymap) -> Path:
     out = canvas.resize((OUT_WIDTH, round(height * OUT_WIDTH / width)), Image.LANCZOS)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     path = OUT_DIR / "legend.webp"
-    out.save(path, "WEBP", quality=90, method=6)
+    out.save(path, "WEBP", quality=90, method=5)
     return path
 
 
