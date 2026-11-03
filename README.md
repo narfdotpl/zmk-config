@@ -44,15 +44,24 @@ Layer images are auto-updated by `scripts/render`.
 
 ### Base
 
-![](images/layers/base.webp)
-![](images/layers/legend.webp)
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="images/light/layers/base.webp">
+  <img src="images/dark/layers/base.webp">
+</picture>
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="images/light/layers/legend.webp">
+  <img src="images/dark/layers/legend.webp">
+</picture>
 
 
 ### Polemak
 
 Colemak DH modified for Polish and Vim
 
-![](images/layers/polemak.webp)
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="images/light/layers/polemak.webp">
+  <img src="images/dark/layers/polemak.webp">
+</picture>
 
 - I write in English and Polish and I use Vim
 - I started with Colemak DH (switching from QWERTY after three decades)
@@ -72,46 +81,70 @@ Colemak DH modified for Polish and Vim
 
 Just alphabet keys with no hold behaviours.
 
-![](images/layers/alpha.webp)
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="images/light/layers/alpha.webp">
+  <img src="images/dark/layers/alpha.webp">
+</picture>
 
 
 ### Greek layer
 
 Greek characters using [urob/zmk-helpers](https://github.com/urob/zmk-helpers) and a Unicode hack on macOS: [Hammerspoon bindings](https://github.com/narfdotpl/dotfiles/commit/3fc93d50cc17e3a4dcf65a74143abaeaa2d14f0d) that toggle the [Unicode input source](https://github.com/narfdotpl/narf.pl/commit/4bab2c4219e701169b5905053d3f5fc19f7d1ae6).
 
-![](images/layers/greek.webp)
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="images/light/layers/greek.webp">
+  <img src="images/dark/layers/greek.webp">
+</picture>
 
 
 ### Apps and windows
 
 Powered by [Hammerspoon][]:
 
-![](images/layers/apps.webp)
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="images/light/layers/apps.webp">
+  <img src="images/dark/layers/apps.webp">
+</picture>
 
 
 ### System
 
-![](images/layers/system.webp)
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="images/light/layers/system.webp">
+  <img src="images/dark/layers/system.webp">
+</picture>
 
 
 ### Bluetooth
 
-![](images/layers/bluetooth.webp)
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="images/light/layers/bluetooth.webp">
+  <img src="images/dark/layers/bluetooth.webp">
+</picture>
 
 
 ### Symbols and code
 
-![](images/layers/symbols.webp)
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="images/light/layers/symbols.webp">
+  <img src="images/dark/layers/symbols.webp">
+</picture>
 
 
 ### Numbers
 
-![](images/layers/numbers.webp)
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="images/light/layers/numbers.webp">
+  <img src="images/dark/layers/numbers.webp">
+</picture>
 
 
 ### F1–F12
 
-![](images/layers/f1_f12.webp)
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="images/light/layers/f1_f12.webp">
+  <img src="images/dark/layers/f1_f12.webp">
+</picture>
 
 
 ## Building firmware locally
