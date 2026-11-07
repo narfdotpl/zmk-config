@@ -170,8 +170,8 @@ APP_SHORT_NAMES = {
 @lru_cache(maxsize=None)
 def hyper_apps() -> dict[str, str]:
     """Hyper+key -> name of the app it opens, read from Hammerspoon's config
-    with ast-grep. Empty if either is missing."""
-    if not (shutil.which("ast-grep") and HAMMERSPOON_INIT.exists()):
+    with ast-grep. Empty if the config is missing."""
+    if not HAMMERSPOON_INIT.exists():
         return {}
     out = subprocess.run(
         ["ast-grep", "scan", "--inline-rules", HYPER_APPS_RULE, "--json=compact", str(HAMMERSPOON_INIT)],
@@ -549,6 +549,8 @@ def render_legend(km: Keymap, theme: str) -> Path:
 
 
 def main() -> None:
+    if not shutil.which("ast-grep"):
+        sys.exit("error: ast-grep not found (install it with: brew install ast-grep)")
     km = Keymap()
     if sys.argv[1:] == ["legend"]:
         for theme in THEMES:
