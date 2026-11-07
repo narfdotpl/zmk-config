@@ -504,8 +504,9 @@ def layer_key(km: Keymap, layer: str, i: int) -> Key:
     if layer == "polemak":
         return polemak_keys(km)[i]
     key = to_key(km.layer(layer)[i])
-    if layer in LAYER_COLORS and km.activating_key(layer) == i:
-        key = replace(key, bg="bg_" + LAYER_COLORS[layer])
+    for held, idx in km.activating_chain(layer):
+        if idx == i and held in LAYER_COLORS:
+            key = replace(key, bg="bg_" + LAYER_COLORS[held])
     return key
 
 
@@ -563,10 +564,10 @@ def main() -> None:
             jobs.append((name, polemak_keys(km)))
             continue
         keys = [to_key(pk) for pk in km.layer(name)]
-        # Tint the key that is held to bring this layer up.
-        if name in LAYER_COLORS and (i := km.activating_key(name)) is not None:
-            bg = "bg_" + LAYER_COLORS[name]
-            keys[i] = replace(keys[i], bg=bg)
+        # Tint every key that is held to bring this layer up.
+        for held, i in km.activating_chain(name):
+            if held in LAYER_COLORS:
+                keys[i] = replace(keys[i], bg="bg_" + LAYER_COLORS[held])
         jobs.append((layer_filename(name), keys))
     # Layers are CPU-bound, so render them in parallel processes.
     with ProcessPoolExecutor() as pool:

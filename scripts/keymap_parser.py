@@ -256,16 +256,31 @@ class Keymap:
         """Layer define (e.g. NUMBERS) -> layer node name (e.g. numbers_layer)."""
         return list(self.layers)[int(self.defines.get(param, param))]
 
-    def activating_key(self, target: str) -> int | None:
-        """Index of the key that, when held, brings up `target` (searching
-        layers in keymap order, so the default layer wins)."""
+    def activating_key(self, target: str) -> tuple[str, int] | None:
+        """(layer, index) of the key that, when held, brings up `target`
+        (searching layers in keymap order, so the default layer wins)."""
         for name in self.layers:
             if name == target:
                 continue
             for i, k in enumerate(self.layer(name)):
                 if k.hold_layer == target:
-                    return i
+                    return name, i
         return None
+
+    def activating_chain(self, target: str) -> list[tuple[str, int]]:
+        """Every held key leading to `target`, as (layer activated, index):
+        the key activating `target`, then the key activating the layer that
+        key lives on, and so on down to the default layer."""
+        chain: list[tuple[str, int]] = []
+        seen = {target}
+        while (found := self.activating_key(target)) is not None:
+            source, i = found
+            chain.append((target, i))
+            if source in seen:
+                break
+            seen.add(source)
+            target = source
+        return chain
 
     def cells(self, ref: str) -> int:
         if ref in self.behaviors:
