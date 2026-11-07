@@ -226,7 +226,7 @@ def greekify(text: str) -> str:
     return re.sub(r"&el_(\w+)", lambda m: GREEK.get(m.group(1), m.group(0)), text)
 
 
-def to_key(pk: ParsedKey, label_color: str = "text") -> Key:
+def to_key(pk: ParsedKey) -> Key:
     if pk.kind == "none":
         return Key(none=True)
     if pk.kind == "trans":
@@ -244,7 +244,7 @@ def to_key(pk: ParsedKey, label_color: str = "text") -> Key:
     hold = symbolize(HOLD_DISPLAY.get(pk.hold, pk.hold))
     label = symbolize(greekify(label))
     return Key(label, hold, hold_color=LAYER_COLORS.get(pk.hold_layer, "overlay0"),
-               label_color=label_color, underline=underline)
+               underline=underline)
 
 
 # --- Rendering ----------------------------------------------------------------
@@ -503,7 +503,7 @@ def polemak_keys(km: Keymap) -> list[Key]:
 def layer_key(km: Keymap, layer: str, i: int) -> Key:
     if layer == "polemak":
         return polemak_keys(km)[i]
-    key = to_key(km.layer(layer)[i], LAYER_COLORS.get(layer, "text"))
+    key = to_key(km.layer(layer)[i])
     if layer in LAYER_COLORS and km.activating_key(layer) == i:
         key = replace(key, bg="bg_" + LAYER_COLORS[layer])
     return key
@@ -562,8 +562,7 @@ def main() -> None:
         if name == "polemak":
             jobs.append((name, polemak_keys(km)))
             continue
-        label_color = LAYER_COLORS.get(name, "text")  # default layer stays neutral
-        keys = [to_key(pk, label_color) for pk in km.layer(name)]
+        keys = [to_key(pk) for pk in km.layer(name)]
         # Tint the key that is held to bring this layer up.
         if name in LAYER_COLORS and (i := km.activating_key(name)) is not None:
             bg = "bg_" + LAYER_COLORS[name]
