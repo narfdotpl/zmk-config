@@ -74,7 +74,16 @@ Colemak DH modified for Polish and Vim
 - swapped `F` and `W` so that closing windows is more convenient to me
 - the whole time I was using Colemak DH [layout analysis tool][analyze] to make the layout better for Polish and not much worse for English:
 
-![](images/polemak.png)
+| Layout | Finger effort | EN | PL | extra | Left hand | EN | PL |
+| :-- | --: | --: | --: | --: | --: | --: | --: |
+| QWERTY | 2,49 | 2,45 | 2,54 | **4%** | 55% | 55% | 54% |
+| Colemak | 1,92 | 1,82 | 2,02 | 11% | 47% | 45% | 49% |
+| Colemak DH | 1,86 | **1,73** | 2,00 | 16% | 47% | 45% | 49% |
+| just JK | 1,86 | **1,73** | 2,00 | 15% | 47% | 45% | 49% |
+| JK + XVCDZ | **1,85** | **1,73** | 1,96 | 13% | 47% | 45% | 49% |
+| JK + XVCZD | 1,86 | 1,79 | 1,93 | 8% | 47% | 45% | 49% |
+| JK + XCVZD | 1,88 | 1,80 | 1,96 | 9% | 47% | 45% | 49% |
+| **JK + XVCZD + FW aka Polemak** | **1,85** | 1,79 | **1,91** | **6%** | 47% | 45% | 49% |
 
 
 ### Alpha layer
