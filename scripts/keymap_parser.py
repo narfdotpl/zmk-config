@@ -1,6 +1,6 @@
 #!/usr/bin/env -S uv run --script
 # /// script
-# requires-python = ">=3.10"
+# requires-python = ">=3.11"
 # ///
 """Parse a ZMK keymap into per-key tap / hold / tap+mod behaviours.
 
@@ -18,6 +18,7 @@ import json
 import re
 import sys
 from dataclasses import dataclass
+from enum import StrEnum
 from pathlib import Path
 
 KEYMAP = Path(__file__).resolve().parent.parent / "config" / "corne.keymap"
@@ -207,6 +208,12 @@ def parse_layers(text: str) -> dict[str, list[Binding]]:
 # --- Semantics ----------------------------------------------------------------------
 
 
+class KeyKind(StrEnum):
+    REGULAR = ""
+    TRANS = "trans"
+    NONE = "none"
+
+
 @dataclass
 class ParsedKey:
     tap: str = ""
@@ -215,7 +222,7 @@ class ParsedKey:
     mods: str = ""  # e.g. "SHIFT"
     raw: str = ""
     hold_layer: str = ""  # layer node name (e.g. "numbers_layer") activated by hold
-    kind: str = ""  # "trans" | "none" | "" (regular key)
+    kind: KeyKind = KeyKind.REGULAR
 
     @property
     def label(self) -> str:
@@ -302,9 +309,9 @@ class Keymap:
             case "sk":
                 return ParsedKey(tap=f"sticky {self.code(p[0])}")
             case "trans":
-                return ParsedKey(kind="trans")
+                return ParsedKey(kind=KeyKind.TRANS)
             case "none":
-                return ParsedKey(kind="none")
+                return ParsedKey(kind=KeyKind.NONE)
             case "bootloader":
                 return ParsedKey(tap="BOOT")
             case "bt":

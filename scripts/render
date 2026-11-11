@@ -1,6 +1,6 @@
 #!/usr/bin/env -S uv run --script
 # /// script
-# requires-python = ">=3.10"
+# requires-python = ">=3.11"
 # dependencies = ["pillow", "fonttools", "catppuccin"]
 # ///
 """Render ZMK keymap layers as .webp images (36-key split keyboard).
@@ -19,6 +19,7 @@ from concurrent.futures import ProcessPoolExecutor
 from functools import lru_cache
 from contextvars import ContextVar
 from dataclasses import dataclass, replace
+from enum import StrEnum
 from pathlib import Path
 
 from catppuccin import PALETTE as catppuccin_palette
@@ -28,16 +29,25 @@ from PIL import Image, ImageDraw, ImageFont
 from keymap_parser import Keymap, ParsedKey
 
 ROOT = Path(__file__).resolve().parent.parent
-THEMES = {"dark": "frappe", "light": "latte"}
+
+
+class Theme(StrEnum):
+    DARK = "dark"
+    LIGHT = "light"
+
+    @property
+    def flavor(self) -> str:
+        return {Theme.DARK: "frappe", Theme.LIGHT: "latte"}[self]
+
 
 # --- Palette (Catppuccin Frappé for dark, Latte for light) ------------------------------------------------
 
 _palette: ContextVar = ContextVar("palette", default=catppuccin_palette.frappe.colors)
 
 
-def set_theme(theme: str) -> Path:
+def set_theme(theme: Theme) -> Path:
     """Switch the active palette; returns the theme's output directory."""
-    _palette.set(getattr(catppuccin_palette, THEMES[theme]).colors)
+    _palette.set(getattr(catppuccin_palette, theme.flavor).colors)
     out = ROOT / "images" / theme / "layers"
     out.mkdir(parents=True, exist_ok=True)
     return out
@@ -478,7 +488,7 @@ def round_corners(img: Image.Image) -> Image.Image:
     return img
 
 
-def render_layer(name: str, keys: list[Key], theme: str) -> Path:
+def render_layer(name: str, keys: list[Key], theme: Theme) -> Path:
     out_dir = set_theme(theme)
     if len(keys) != len(SLOTS):
         raise ValueError(f"layer {name!r}: expected {len(SLOTS)} keys, got {len(keys)}")
@@ -536,7 +546,7 @@ def layer_key(km: Keymap, layer: str, i: int) -> Key:
     return key
 
 
-def render_legend(km: Keymap, theme: str) -> Path:
+def render_legend(km: Keymap, theme: Theme) -> Path:
     out_dir = set_theme(theme)
     u = UNIT * SS
     row_h = 1.25 * u
@@ -580,7 +590,7 @@ def main() -> None:
         sys.exit("error: ast-grep not found (install it with: brew install ast-grep)")
     km = Keymap()
     if sys.argv[1:] == ["legend"]:
-        for theme in THEMES:
+        for theme in Theme:
             print(render_legend(km, theme))
         return
     names = sys.argv[1:] or [n for n in km.layers if n not in SKIP_LAYERS] + ["polemak"]
@@ -596,9 +606,9 @@ def main() -> None:
         jobs.append((layer_filename(name), keys))
     # Layers are CPU-bound, so render them in parallel processes.
     with ProcessPoolExecutor() as pool:
-        futures = [pool.submit(render_layer, n, k, t) for t in THEMES for n, k in jobs]
+        futures = [pool.submit(render_layer, n, k, t) for t in Theme for n, k in jobs]
         if not sys.argv[1:]:
-            futures += [pool.submit(render_legend, km, t) for t in THEMES]
+            futures += [pool.submit(render_legend, km, t) for t in Theme]
         for f in futures:
             print(f.result())
 
