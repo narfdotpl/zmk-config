@@ -42,7 +42,7 @@ def set_theme(theme: str) -> Path:
     out.mkdir(parents=True, exist_ok=True)
     return out
 
-BG_TINT = 0.15  # strength of the accent in subtle key backgrounds
+BG_TINT = 0.2  # strength of the accent in subtle key backgrounds
 
 
 def _blend(fg: str, bg: str, t: float) -> str:
@@ -121,7 +121,7 @@ class Key:
 # Hold labels (as produced by the parser) -> text and palette color.
 HOLD_DISPLAY = {"apps_and_lcmd": "APPS", "greek_mode": "GREEK"}
 # Background of the keys held to reach a layer (same for every layer).
-HELD_BG = "bg_overlay2"
+HELD_BG = "bg_blue"
 # Layer node name -> palette color (used for hold labels).
 LAYER_COLORS = {
     "alpha_layer": "mauve",
