@@ -120,8 +120,9 @@ class Key:
 
 # Hold labels (as produced by the parser) -> text and palette color.
 HOLD_DISPLAY = {"apps_and_lcmd": "APPS", "greek_mode": "GREEK"}
-# Layer node name -> palette color (used for hold labels and, in the layer's
-# own render, the background of the key that activates it).
+# Background of the keys held to reach a layer (same for every layer).
+HELD_BG = "bg_overlay2"
+# Layer node name -> palette color (used for hold labels).
 LAYER_COLORS = {
     "alpha_layer": "mauve",
     "greek_layer": "teal",
@@ -504,9 +505,8 @@ def layer_key(km: Keymap, layer: str, i: int) -> Key:
     if layer == "polemak":
         return polemak_keys(km)[i]
     key = to_key(km.layer(layer)[i])
-    for held, idx in km.activating_chain(layer):
-        if idx == i and held in LAYER_COLORS:
-            key = replace(key, bg="bg_" + LAYER_COLORS[held])
+    if any(idx == i for _, idx in km.activating_chain(layer)):
+        key = replace(key, bg=HELD_BG)
     return key
 
 
@@ -565,9 +565,8 @@ def main() -> None:
             continue
         keys = [to_key(pk) for pk in km.layer(name)]
         # Tint every key that is held to bring this layer up.
-        for held, i in km.activating_chain(name):
-            if held in LAYER_COLORS:
-                keys[i] = replace(keys[i], bg="bg_" + LAYER_COLORS[held])
+        for _, i in km.activating_chain(name):
+            keys[i] = replace(keys[i], bg=HELD_BG)
         jobs.append((layer_filename(name), keys))
     # Layers are CPU-bound, so render them in parallel processes.
     with ProcessPoolExecutor() as pool:
