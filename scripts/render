@@ -53,7 +53,7 @@ def _blend(fg: str, bg: str, t: float) -> str:
 # --- Geometry (in key units; 1.0 = key pitch) ---------------------------------
 
 # Vertical stagger of each column, outer -> inner, for the left half.
-COLUMN_OFFSETS = [0.40, 0.15, 0.0, 0.17, 0.30]
+COLUMN_OFFSETS = [x / 16 for x in [7.5, 3, 0, 2, 4.25]]  # in mm
 MIRROR_X = 6.24  # x of the axis between the two halves
 
 
@@ -74,9 +74,9 @@ def _left_slots() -> list[Slot]:
     ]
     # Thumbs, left -> right. The last one is the tall key.
     slots += [
-        Slot(3.00, 3.95, rot=0),
-        Slot(4.12, 4.05, rot=15),
-        Slot(5.22, 4.25, h=1.5, rot=25),
+        Slot(3.00, 3.65, rot=0),
+        Slot(4.08, 3.80, rot=15),
+        Slot(5.20, 3.96, h=1.5, rot=25),
     ]
     return slots
 
@@ -252,7 +252,7 @@ def to_key(pk: ParsedKey) -> Key:
 
 OUT_WIDTH = 1600  # px, width of every output image
 UNIT = OUT_WIDTH / (2 * MIRROR_X + 2 * 0.5)  # px per key unit (layer images come out OUT_WIDTH wide)
-GAP = 0.08  # gap between keys, in units
+GAP = 0.07  # gap between keys, in units
 RADIUS = 0.12  # corner radius, in units (keys and whole image)
 BORDER = 2  # px
 MARGIN = 0.5  # units
