@@ -357,7 +357,7 @@ def text_width(d: ImageDraw.ImageDraw, text: str, font) -> float:
     return max(map(line_width, text.split("\n")))
 
 
-LINE_HEIGHT = 1.1  # line spacing of multi-line labels, relative to the font size
+LINE_HEIGHT = 1.3  # line spacing of multi-line labels, relative to the font size
 
 
 def draw_text(d, xy, text: str, font, fill, underline: tuple[int, ...] = ()) -> None:
