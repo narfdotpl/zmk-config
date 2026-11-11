@@ -140,23 +140,32 @@ LAYER_COLORS = {
 SKIP_LAYERS = {"trans_layer", "none_layer"}
 
 
-# ast-grep rule: `key = "App"` fields of the table that a Hammerspoon loop
-# feeds to hs.application.launchOrFocus.
+# ast-grep rules: `key = "App"` fields of the table that a Hammerspoon loop
+# feeds to hs.application.launchOrFocus, and `bindHyper("key", "label", ...)` calls.
 HAMMERSPOON_INIT = Path("~/.hammerspoon/init.lua").expanduser()
-HYPER_APPS_RULE = """
-id: hyper-app
+LAUNCH_APP_RULE = """
+id: launch-app
 language: lua
 rule:
   kind: field
   all:
     - has: {field: name, kind: identifier, pattern: $KEY}
-    - has: {field: value, kind: string, pattern: $APP}
+    - has: {field: value, kind: string, pattern: $LABEL}
   inside:
     stopBy: end
     kind: for_statement
     has:
       stopBy: end
       pattern: hs.application.launchOrFocus($$$)
+"""
+BIND_HYPER_RULE = """
+id: bind-hyper
+language: lua
+rule:
+  pattern: bindHyper($KEY, $LABEL, $$$)
+  not:
+    inside:
+      kind: function_declaration
 """
 
 
@@ -169,21 +178,23 @@ APP_SHORT_NAMES = {
 
 
 @lru_cache(maxsize=None)
-def hyper_apps() -> dict[str, str]:
-    """Hyper+key -> name of the app it opens, read from Hammerspoon's config
-    with ast-grep. Empty if the config is missing."""
+def hyper_labels() -> dict[str, str]:
+    """Hyper+key -> name of the app it opens (or the label given to bindHyper),
+    read from Hammerspoon's config with ast-grep. Empty if the config is missing."""
     if not HAMMERSPOON_INIT.exists():
         return {}
-    out = subprocess.run(
-        ["ast-grep", "scan", "--inline-rules", HYPER_APPS_RULE, "--json=compact", str(HAMMERSPOON_INIT)],
-        capture_output=True, text=True,
-    ).stdout
-    apps = {}
-    for m in json.loads(out or "[]"):
-        v = m["metaVariables"]["single"]
-        app = v["APP"]["text"].strip("\"'")
-        apps[v["KEY"]["text"].upper()] = APP_SHORT_NAMES.get(app, app)
-    return apps
+    labels = {}
+    for rule in (LAUNCH_APP_RULE, BIND_HYPER_RULE):
+        out = subprocess.run(
+            ["ast-grep", "scan", "--inline-rules", rule, "--json=compact", str(HAMMERSPOON_INIT)],
+            capture_output=True, text=True,
+        ).stdout
+        for m in json.loads(out or "[]"):
+            v = m["metaVariables"]["single"]
+            label = v["LABEL"]["text"].strip("\"'")
+            # short names keep their spaces, other labels wrap onto lines
+            labels[v["KEY"]["text"].strip("\"'").upper()] = APP_SHORT_NAMES.get(label) or label.replace(" ", "\n")
+    return labels
 
 
 def layer_filename(name: str) -> str:
@@ -205,11 +216,14 @@ SYMBOL_SCALE = 1.0
 def symbolize(text: str) -> str:
     """Replace key names with symbols and drop "+" between combined keys,
     e.g. "CMD+SHIFT+4" -> "⌘⇧4". Words are kept (a lone "+" is the plus key)."""
-    words = []
-    for word in text.split():
-        parts = re.split(r"\+(?=.)", word)
-        words.append("".join(SYMBOLS.get(p, p) for p in parts))
-    return " ".join(words)
+    lines = []
+    for line in text.split("\n"):
+        words = []
+        for word in line.split():
+            parts = re.split(r"\+(?=.)", word)
+            words.append("".join(SYMBOLS.get(p, p) for p in parts))
+        lines.append(" ".join(words))
+    return "\n".join(lines)
 
 
 GREEK = {
@@ -240,8 +254,8 @@ def to_key(pk: ParsedKey) -> Key:
             underline = tuple(range(first, first + len(pk.tap_mod.split())))
     else:
         label = pk.tap
-    if label.startswith("HYPER+") and (app := hyper_apps().get(label.removeprefix("HYPER+"))):
-        label = app
+    if label.startswith("HYPER+") and (hyper_label := hyper_labels().get(label.removeprefix("HYPER+"))):
+        label = hyper_label
     hold = symbolize(HOLD_DISPLAY.get(pk.hold, pk.hold))
     label = symbolize(greekify(label))
     return Key(label, hold, hold_color=LAYER_COLORS.get(pk.hold_layer, "overlay0"),
@@ -335,14 +349,26 @@ def word_width(d, word: str, font) -> float:
 
 
 def text_width(d: ImageDraw.ImageDraw, text: str, font) -> float:
-    words = text.split()
-    gap = WORD_GAP * font.size
-    return sum(word_width(d, w, font) for w in words) + gap * max(len(words) - 1, 0)
+    """Width of the widest line."""
+    def line_width(line: str) -> float:
+        words = line.split()
+        gap = WORD_GAP * font.size
+        return sum(word_width(d, w, font) for w in words) + gap * max(len(words) - 1, 0)
+    return max(map(line_width, text.split("\n")))
+
+
+LINE_HEIGHT = 1.1  # line spacing of multi-line labels, relative to the font size
 
 
 def draw_text(d, xy, text: str, font, fill, underline: tuple[int, ...] = ()) -> None:
     """Draw text centered at xy, with tighter spacing between words.
-    Words whose index is in `underline` get underlined."""
+    Words whose index is in `underline` get underlined. Lines are stacked."""
+    lines = text.split("\n")
+    if len(lines) > 1:
+        step = LINE_HEIGHT * font.size
+        for i, line in enumerate(lines):
+            draw_text(d, (xy[0], xy[1] + (i - (len(lines) - 1) / 2) * step), line, font, fill)
+        return
     x = xy[0] - text_width(d, text, font) / 2
     ascent, descent = font.getmetrics()
     line_y = xy[1] + (ascent - descent) / 2 + 0.14 * font.size  # just below baseline
