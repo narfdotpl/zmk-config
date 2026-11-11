@@ -252,7 +252,7 @@ def to_key(pk: ParsedKey) -> Key:
 
 OUT_WIDTH = 1600  # px, width of every output image
 UNIT = OUT_WIDTH / (2 * MIRROR_X + 2 * 0.5)  # px per key unit (layer images come out OUT_WIDTH wide)
-GAP = 0.07  # gap between keys, in units
+GAP = 0.08  # gap between keys, in units
 RADIUS = 0.12  # corner radius, in units (keys and whole image)
 BORDER = 2  # px
 MARGIN = 0.5  # units
