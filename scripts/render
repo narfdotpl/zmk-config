@@ -26,7 +26,7 @@ from catppuccin import PALETTE as catppuccin_palette
 from fontTools.ttLib import TTFont
 from PIL import Image, ImageDraw, ImageFont
 
-from keymap_parser import Keymap, ParsedKey
+from keymap_parser import KEY_NAMES, Keymap, ParsedKey
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -183,7 +183,7 @@ rule:
 APP_SHORT_NAMES = {
     "Visual Studio Code": "VS Code",
     "Things3": "Things",
-    "Ableton Live 12 Suite": "Ableton",
+    "Ableton Live 12 Suite": "Ableton\nLive",
 }
 
 
@@ -203,7 +203,8 @@ def hyper_labels() -> dict[str, str]:
             v = m["metaVariables"]["single"]
             label = v["LABEL"]["text"].strip("\"'")
             # short names keep their spaces, other labels wrap onto lines
-            labels[v["KEY"]["text"].strip("\"'").upper()] = APP_SHORT_NAMES.get(label) or label.replace(" ", "\n")
+            key = v["KEY"]["text"].strip("\"'").upper()
+            labels[KEY_NAMES.get(key, key)] = APP_SHORT_NAMES.get(label) or label.replace(" ", "\n")
     return labels
 
 
@@ -302,6 +303,7 @@ SYMBOL_FONT_CANDIDATES = [
     "/System/Library/Fonts/SFNS.ttf",
     "/System/Library/Fonts/Menlo.ttc",
     "/System/Library/Fonts/Apple Symbols.ttf",
+    "/System/Library/Fonts/Supplemental/STIXGeneral.otf",
     "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
 ]
 
