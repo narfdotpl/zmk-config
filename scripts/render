@@ -220,6 +220,8 @@ SYMBOLS = {
     "BS": "⌫", "DEL": "⌦", "ENTER": "⏎", "TAB": "⇥", "ESC": "⎋",
     "CAPS": "⇪", "SPC": "␣",
 }  # fmt: skip
+# Multi-word key names -> symbols (matched before words are split).
+PHRASES = {"c play pause": "⏯", "c prev": "⏮", "c next": "⏭"}
 # Characters that the main font lacks and are drawn with the symbol font.
 # Symbol size relative to the label font.
 SYMBOL_SCALE = 1.0
@@ -228,6 +230,8 @@ SYMBOL_SCALE = 1.0
 def symbolize(text: str) -> str:
     """Replace key names with symbols and drop "+" between combined keys,
     e.g. "CMD+SHIFT+4" -> "⌘⇧4". Words are kept (a lone "+" is the plus key)."""
+    for phrase, symbol in PHRASES.items():
+        text = re.sub(rf"\b{phrase}\b", symbol, text, flags=re.I)
     lines = []
     for line in text.split("\n"):
         words = []
@@ -245,7 +249,7 @@ GREEK = {
     "omicron": "ο", "pi": "π", "rho": "ρ", "sigma": "σ", "tau": "τ",
     "upsilon": "υ", "phi": "φ", "chi": "χ", "psi": "ψ", "omega": "ω",
 }  # fmt: skip
-SYMBOL_CHARS = set("".join(SYMBOLS.values()) + "←↑→↓" + "".join(GREEK.values()))
+SYMBOL_CHARS = set("".join(SYMBOLS.values()) + "".join(PHRASES.values()) + "←↑→↓" + "".join(GREEK.values()))
 
 
 def greekify(text: str) -> str:
@@ -306,6 +310,7 @@ SYMBOL_FONT_CANDIDATES = [
     "/System/Library/Fonts/Menlo.ttc",
     "/System/Library/Fonts/Apple Symbols.ttf",
     "/System/Library/Fonts/Supplemental/STIXGeneral.otf",
+    "/System/Library/Fonts/Supplemental/STIXTwoMath.otf",
     "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
 ]
 
