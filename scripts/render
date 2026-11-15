@@ -225,6 +225,8 @@ SYMBOLS = {
 PHRASES = {"c play pause": "⏯", "c prev": "⏮", "c next": "⏭",
            r"(?:ctrl\+)?c bri dec": "☼", r"(?:ctrl\+)?c bri inc": "☀",
            "mute": "\ue000", "c vol dn": "\ue001", "c vol up": "\ue002"}
+# Label rewrites that stay plain text (regex -> replacement).
+REWRITES = {r"bt bt sel (\d)": r"BT \1", "bt bt clr": "BT clear"}
 # Characters that the main font lacks and are drawn with the symbol font.
 # Symbol size relative to the label font.
 SYMBOL_SCALE = 1.0
@@ -233,7 +235,7 @@ SYMBOL_SCALE = 1.0
 def symbolize(text: str) -> str:
     """Replace key names with symbols and drop "+" between combined keys,
     e.g. "CMD+SHIFT+4" -> "⌘⇧4". Words are kept (a lone "+" is the plus key)."""
-    for phrase, symbol in PHRASES.items():
+    for phrase, symbol in {**PHRASES, **REWRITES}.items():
         text = re.sub(rf"\b{phrase}\b", symbol, text, flags=re.I)
     lines = []
     for line in text.split("\n"):
@@ -257,6 +259,14 @@ GREEK = {
 # char -> (width in em, number of sound waves; None for mute's cross)
 ICONS = {"\ue000": (1.0, None), "\ue001": (0.7, 1), "\ue002": (0.9, 2)}
 SYMBOL_CHARS = set("".join(SYMBOLS.values()) + "".join(v for v in PHRASES.values() if v not in ICONS) + "←↑→↓" + "".join(GREEK.values()))
+
+
+def label_sides(keys: list[Key]) -> list[Key]:
+    """Tell the two bootloader keys apart by the half of the board they are on."""
+    return [
+        replace(k, label=f"boot\n{'left' if SLOTS[i].x < MIRROR_X else 'right'}") if k.label == "BOOT" else k
+        for i, k in enumerate(keys)
+    ]
 
 
 def greekify(text: str) -> str:
@@ -675,7 +685,7 @@ def main() -> None:
         if name == "polemak":
             jobs.append((name, polemak_keys(km)))
             continue
-        keys = [to_key(pk) for pk in km.layer(name)]
+        keys = label_sides([to_key(pk) for pk in km.layer(name)])
         # Tint every key that is held to bring this layer up.
         for _, i in km.activating_chain(name):
             keys[i] = replace(keys[i], bg=HELD_BG)
