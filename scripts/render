@@ -341,23 +341,54 @@ def symbol_font(ch: str, size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageF
 WORD_GAP = 0.3  # gap between words, in em (a regular space is ~0.6 em in mono fonts)
 
 
-def runs(word: str, font) -> list[tuple[str, ImageFont.FreeTypeFont]]:
-    """Split a word into runs, drawing symbol characters with the symbol font."""
-    out: list[tuple[str, object]] = []
-    for ch in word:
-        if ch in SYMBOL_CHARS:
-            f = symbol_font(ch, round(font.size * SYMBOL_SCALE))
+FRACTION = re.compile(r"(\d+)/(\d+)")
+FRACTION_SCALE = 0.62  # size of numerator and denominator relative to the label font
+FRACTION_SHIFT = 0.38  # vertical offset of numerator (up) and denominator (down), in em
+
+
+@dataclass(frozen=True)
+class Run:
+    text: str  # empty for a fraction bar
+    font: ImageFont.FreeTypeFont | ImageFont.ImageFont
+    dx: float = 0.0  # horizontal offset from the run's start
+    dy: float = 0.0
+    advance: float = 0.0  # width the run takes up
+    bar: float = 0.0  # length of the fraction bar to draw instead of text
+
+
+def runs(word: str, font) -> list[Run]:
+    """Split a word into runs: symbol characters are drawn with the symbol font,
+    fractions as a numerator stacked above a bar and a denominator."""
+    out: list[Run] = []
+
+    def add(text: str, f) -> None:
+        width = f.getlength(text)
+        if out and out[-1].font is f and not out[-1].dy and not out[-1].bar:
+            last = out.pop()
+            out.append(Run(last.text + text, f, advance=last.advance + width))
         else:
-            f = font
-        if out and out[-1][1] is f:
-            out[-1] = (out[-1][0] + ch, f)
-        else:
-            out.append((ch, f))
+            out.append(Run(text, f, advance=width))
+
+    small = load_font(max(round(font.size * FRACTION_SCALE), 1))
+    shift = FRACTION_SHIFT * font.size
+    pos = 0
+    for m in [*FRACTION.finditer(word), None]:
+        end = m.start() if m else len(word)
+        for ch in word[pos:end]:
+            add(ch, symbol_font(ch, round(font.size * SYMBOL_SCALE)) if ch in SYMBOL_CHARS else font)
+        if m:
+            num, den = m.groups()
+            w_num, w_den = small.getlength(num), small.getlength(den)
+            width = max(w_num, w_den)
+            out.append(Run(num, small, dx=(width - w_num) / 2, dy=-shift))
+            out.append(Run("", small, bar=width))
+            out.append(Run(den, small, dx=(width - w_den) / 2, dy=shift, advance=width))
+            pos = m.end()
     return out
 
 
 def word_width(d, word: str, font) -> float:
-    return sum(d.textlength(t, font=f) for t, f in runs(word, font))
+    return sum(r.advance for r in runs(word, font))
 
 
 def text_width(d: ImageDraw.ImageDraw, text: str, font) -> float:
@@ -387,9 +418,12 @@ def draw_text(d, xy, text: str, font, fill, underline: tuple[int, ...] = ()) -> 
     for i, word in enumerate(text.split()):
         width = word_width(d, word, font)
         rx = x
-        for t, f in runs(word, font):
-            d.text((rx, xy[1]), t, font=f, fill=fill, anchor="lm")
-            rx += d.textlength(t, font=f)
+        for r in runs(word, font):
+            if r.bar:
+                d.line((rx, xy[1], rx + r.bar, xy[1]), fill=fill, width=max(2, round(font.size * 0.05)))
+            else:
+                d.text((rx + r.dx, xy[1] + r.dy), r.text, font=r.font, fill=fill, anchor="lm")
+            rx += r.advance
         if i in underline:
             d.line((x, line_y, x + width, line_y), fill=fill, width=max(2, round(font.size * 0.06)))
         x += width + WORD_GAP * font.size
