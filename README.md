@@ -108,7 +108,7 @@ Greek characters using [urob/zmk-helpers](https://github.com/urob/zmk-helpers) a
 
 ### Apps and windows
 
-Powered by [Hammerspoon][]:
+Apps on the left, window management on the right. Powered by [Hammerspoon][].
 
 <picture>
   <source media="(prefers-color-scheme: light)" srcset="images/light/layers/apps.webp">
