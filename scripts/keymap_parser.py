@@ -41,6 +41,13 @@ LABEL_OVERRIDES = {
     "SHORT_ARROW_CLOSE": "=>",
     "BRACES": "{ }",
     "APPEND_SEMICOLON": "append\nsemicolon",
+
+    "PLUS_EQ": "+=",
+    "MINUS_EQ": "-=",
+    "SLASH_EQ": "/=",
+    "STAR_EQ": "*=",
+    "EQ_EQ": "==",
+    "EXCL_EQ": "!=",
 }
 
 # --- Key labels ---------------------------------------------------------------

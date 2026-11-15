@@ -234,14 +234,14 @@ SYMBOL_SCALE = 1.0
 
 def symbolize(text: str) -> str:
     """Replace key names with symbols and drop "+" between combined keys,
-    e.g. "CMD+SHIFT+4" -> "⌘⇧4". Words are kept (a lone "+" is the plus key)."""
+    e.g. "CMD+SHIFT+4" -> "⌘⇧4". Words are kept (a "+" at the start or end of a word is the plus key)."""
     for phrase, symbol in {**PHRASES, **REWRITES}.items():
         text = re.sub(rf"\b{phrase}\b", symbol, text, flags=re.I)
     lines = []
     for line in text.split("\n"):
         words = []
         for word in line.split():
-            parts = re.split(r"\+(?=.)", word)
+            parts = re.split(r"(?<=.)\+(?=.)", word)
             words.append("".join(SYMBOLS.get(p, p) for p in parts))
         lines.append(" ".join(words))
     return "\n".join(lines)
