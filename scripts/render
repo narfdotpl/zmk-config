@@ -220,8 +220,10 @@ SYMBOLS = {
     "BS": "⌫", "DEL": "⌦", "ENTER": "⏎", "TAB": "⇥", "ESC": "⎋",
     "CAPS": "⇪", "SPC": "␣",
 }  # fmt: skip
-# Multi-word key names -> symbols (matched before words are split).
-PHRASES = {"c play pause": "⏯", "c prev": "⏮", "c next": "⏭"}
+# Multi-word key names -> symbols (regexes, matched before words are split).
+# Brightness keys are sent with Ctrl, which is dropped from the label.
+PHRASES = {"c play pause": "⏯", "c prev": "⏮", "c next": "⏭",
+           r"(?:ctrl\+)?c bri dec": "☼", r"(?:ctrl\+)?c bri inc": "☀"}
 # Characters that the main font lacks and are drawn with the symbol font.
 # Symbol size relative to the label font.
 SYMBOL_SCALE = 1.0
