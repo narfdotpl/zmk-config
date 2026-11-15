@@ -30,9 +30,17 @@ LABEL_OVERRIDES = {
     "CTRL+←": "prev\nspace",
     "CTRL+→": "next\nspace",
     "HYPER+C": "Stage\nManager",
+
     "SELFDOT": "self.",
     "THISDOT": "this.",
     "ARGS0": "$0.",
+
+    "FAT_ARROW": "() => {  }",
+    "FAT_ARROW_CLOSE": "=> {  }",
+    "SHORT_ARROW": "() =>",
+    "SHORT_ARROW_CLOSE": "=>",
+    "BRACES": "{ }",
+    "APPEND_SEMICOLON": "append\nsemicolon",
 }
 
 # --- Key labels ---------------------------------------------------------------
