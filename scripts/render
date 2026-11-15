@@ -283,8 +283,9 @@ RADIUS = 0.12  # corner radius, in units (keys and whole image)
 BORDER = 2  # px
 MARGIN = 0.5  # units
 SS = 2  # supersampling factor
-STRIPE_TINT = 0.4  # strength of the yellow in stripes
-STRIPE_WIDTH = 0.05  # units
+STRIPE_TINT = 0.3  # strength of the yellow in stripes
+STRIPE_GAP_TINT = 0.3  # strength of the yellow between stripes, relative to STRIPE_TINT
+STRIPE_WIDTH = 0.06  # units
 STRIPE_PERIOD = 0.16  # units, distance between stripe starts (measured along an axis)
 
 FONT_CANDIDATES = [
@@ -453,7 +454,9 @@ def stripes(size: tuple[int, int], box: tuple[int, int, int, int], rot: float) -
     rotation) clipped to the rounded key rectangle `box`."""
     u = UNIT * SS
     n = 2 * max(size)
-    layer = Image.new("RGBA", (n, n), (0, 0, 0, 0))
+    yellow = _palette.get().yellow.hex
+    gap = tuple(int(yellow[i : i + 2], 16) for i in (1, 3, 5)) + (round(255 * STRIPE_TINT * STRIPE_GAP_TINT),)
+    layer = Image.new("RGBA", (n, n), gap)
     d = ImageDraw.Draw(layer)
     period = STRIPE_PERIOD * u * math.sqrt(2)
     for k in range(-2 * n, 2 * n, max(1, round(period))):
