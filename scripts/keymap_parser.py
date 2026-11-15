@@ -27,6 +27,8 @@ KEYMAP = Path(__file__).resolve().parent.parent / "config" / "corne.keymap"
 # case-insensitively against the parser's label, e.g. "ALT+X" or "SELFDOT".
 LABEL_OVERRIDES = {
     "ALT+X": "Ź",
+    "CTRL+←": "prev\nspace",
+    "CTRL+→": "next\nspace",
     "SELFDOT": "self.",
     "THISDOT": "this.",
 }
