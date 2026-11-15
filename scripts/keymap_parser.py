@@ -57,6 +57,8 @@ MOD_WRAPPERS = {
     "LA": "ALT", "RA": "ALT", "LC": "CTRL", "RC": "CTRL", "HY": "HYPER",
 }  # fmt: skip
 
+MODIFIERS = set(MOD_WRAPPERS.values())
+
 MOD_FLAGS = {"SFT": "SHIFT", "CTL": "CTRL", "ALT": "ALT", "GUI": "CMD"}
 
 # Number of parameters of ZMK built-in behaviours.
@@ -348,10 +350,25 @@ class Keymap:
             return b
         return Binding(b.ref, params[: self.cells(b.ref)])
 
+    def layer_mod(self, name: str) -> str:
+        """Modifier that a macro holds together with layer `name` (e.g. "CMD"
+        for the apps layer), or "" if there is none."""
+        for beh in self.behaviors.values():
+            if "macro" not in beh.compatible:
+                continue
+            layers = {self.layer_node(x.params[0]) for x in beh.bindings if x.ref == "mo"}
+            mods = [m for x in beh.bindings if x.ref == "kp" and (m := self.code(x.params[0])) in MODIFIERS]
+            if name in layers and mods:
+                return mods[0]
+        return ""
+
     def layer(self, name: str) -> list[ParsedKey]:
         keys = []
+        layer_mod = self.layer_mod(name)
         for b in self.layers[name]:
             k = self.resolve(b)
+            if layer_mod and b.ref == "kp" and k.tap and not k.tap.startswith(tuple(m + "+" for m in MODIFIERS)):
+                k.tap = f"{layer_mod}+{k.tap}"  # the layer is held together with a modifier
             k.tap, k.hold, k.tap_mod = (self.override(t) for t in (k.tap, k.hold, k.tap_mod))
             k.raw = " ".join(["&" + b.ref, *b.params])
             keys.append(k)
