@@ -29,6 +29,7 @@ LABEL_OVERRIDES = {
     "ALT+X": "Ź",
     "CTRL+←": "prev\nspace",
     "CTRL+→": "next\nspace",
+    "HYPER+C": "Stage\nManager",
     "SELFDOT": "self.",
     "THISDOT": "this.",
 }
