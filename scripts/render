@@ -226,7 +226,7 @@ PHRASES = {"c play pause": "⏯", "c prev": "⏮", "c next": "⏭",
            r"(?:ctrl\+)?c bri dec": "☼", r"(?:ctrl\+)?c bri inc": "☀",
            "mute": "\ue000", "c vol dn": "\ue001", "c vol up": "\ue002"}
 # Label rewrites that stay plain text (regex -> replacement).
-REWRITES = {r"bt bt sel (\d)": r"BT \1", "bt bt clr": "BT clear"}
+REWRITES = {r"bt bt sel (\d)": r"BT \1", "bt bt clr": "BT clear", r"kp n(\d)": r"NP\1"}
 # Characters that the main font lacks and are drawn with the symbol font.
 # Symbol size relative to the label font.
 SYMBOL_SCALE = 1.0
