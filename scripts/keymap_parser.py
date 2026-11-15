@@ -32,6 +32,7 @@ LABEL_OVERRIDES = {
     "HYPER+C": "Stage\nManager",
     "SELFDOT": "self.",
     "THISDOT": "this.",
+    "ARGS0": "$0.",
 }
 
 # --- Key labels ---------------------------------------------------------------

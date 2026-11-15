@@ -550,7 +550,7 @@ LEGEND_ROWS = [
     ("default_layer", 0, "Tap / hold", "Big label is the tap.\nSmall label at the bottom is the hold."),
     ("default_layer", 27, "Shift tap", "Right label is what you get with ⇧ held."),
     ("default_layer", 24, "Alt tap", "Underlined right label is what you get with ⌥ held."),
-    ("default_layer", 30, "Layer color", "Hold label is colored like the layer it activates."),
+    ("default_layer", 30, "Layers", "Uppercase colorful holds activate layers."),
     ("system_layer", 32, "Layer activator", "Tinted key is the one you hold to reach this layer."),
     ("alpha_layer", 9, "Transparent", "Empty key falls through to the layer below."),
     ("apps_layer", 9, "Disabled", "Crossed out key does nothing."),
