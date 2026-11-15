@@ -223,7 +223,8 @@ SYMBOLS = {
 # Multi-word key names -> symbols (regexes, matched before words are split).
 # Brightness keys are sent with Ctrl, which is dropped from the label.
 PHRASES = {"c play pause": "⏯", "c prev": "⏮", "c next": "⏭",
-           r"(?:ctrl\+)?c bri dec": "☼", r"(?:ctrl\+)?c bri inc": "☀"}
+           r"(?:ctrl\+)?c bri dec": "☼", r"(?:ctrl\+)?c bri inc": "☀",
+           "mute": "\ue000", "c vol dn": "\ue001", "c vol up": "\ue002"}
 # Characters that the main font lacks and are drawn with the symbol font.
 # Symbol size relative to the label font.
 SYMBOL_SCALE = 1.0
@@ -251,7 +252,11 @@ GREEK = {
     "omicron": "ο", "pi": "π", "rho": "ρ", "sigma": "σ", "tau": "τ",
     "upsilon": "υ", "phi": "φ", "chi": "χ", "psi": "ψ", "omega": "ω",
 }  # fmt: skip
-SYMBOL_CHARS = set("".join(SYMBOLS.values()) + "".join(PHRASES.values()) + "←↑→↓" + "".join(GREEK.values()))
+# Speaker icons have no monochrome glyph in the system fonts, so they are drawn
+# as shapes (private-use characters stand in for them in labels).
+# char -> (width in em, number of sound waves; None for mute's cross)
+ICONS = {"\ue000": (1.0, None), "\ue001": (0.7, 1), "\ue002": (0.9, 2)}
+SYMBOL_CHARS = set("".join(SYMBOLS.values()) + "".join(v for v in PHRASES.values() if v not in ICONS) + "←↑→↓" + "".join(GREEK.values()))
 
 
 def greekify(text: str) -> str:
@@ -363,6 +368,7 @@ class Run:
     dy: float = 0.0
     advance: float = 0.0  # width the run takes up
     bar: float = 0.0  # length of the fraction bar to draw instead of text
+    icon: str = ""  # key of ICONS to draw instead of text
 
 
 def runs(word: str, font) -> list[Run]:
@@ -372,7 +378,7 @@ def runs(word: str, font) -> list[Run]:
 
     def add(text: str, f) -> None:
         width = f.getlength(text)
-        if out and out[-1].font is f and not out[-1].dy and not out[-1].bar:
+        if out and out[-1].font is f and not out[-1].dy and not out[-1].bar and not out[-1].icon:
             last = out.pop()
             out.append(Run(last.text + text, f, advance=last.advance + width))
         else:
@@ -384,6 +390,9 @@ def runs(word: str, font) -> list[Run]:
     for m in [*FRACTION.finditer(word), None]:
         end = m.start() if m else len(word)
         for ch in word[pos:end]:
+            if ch in ICONS:
+                out.append(Run("", font, icon=ch, advance=ICONS[ch][0] * font.size))
+                continue
             add(ch, symbol_font(ch, round(font.size * SYMBOL_SCALE)) if ch in SYMBOL_CHARS else font)
         if m:
             num, den = m.groups()
@@ -394,6 +403,24 @@ def runs(word: str, font) -> list[Run]:
             out.append(Run(den, small, dx=(width - w_den) / 2, dy=shift, advance=width))
             pos = m.end()
     return out
+
+
+def draw_speaker(d, x: float, y: float, size: float, waves: int | None, fill) -> None:
+    """Speaker icon with its left edge at x, centered on y; `size` is the em."""
+    def pt(px: float, py: float) -> tuple[float, float]:
+        return x + px * size, y + py * size
+
+    width = max(2, round(0.07 * size))
+    d.rectangle((*pt(0, -0.14), *pt(0.2, 0.14)), fill=fill)
+    d.polygon([pt(0.2, -0.14), pt(0.45, -0.34), pt(0.45, 0.34), pt(0.2, 0.14)], fill=fill)
+    if waves is None:  # mute: a cross
+        for a, b in (((0.6, -0.16), (0.92, 0.16)), ((0.6, 0.16), (0.92, -0.16))):
+            d.line((*pt(*a), *pt(*b)), fill=fill, width=width)
+        return
+    for i in range(waves):
+        r = (0.2 + 0.18 * i) * size
+        cx, cy = pt(0.45, 0)
+        d.arc((cx - r, cy - r, cx + r, cy + r), -50, 50, fill=fill, width=width)
 
 
 def word_width(d, word: str, font) -> float:
@@ -430,6 +457,8 @@ def draw_text(d, xy, text: str, font, fill, underline: tuple[int, ...] = ()) -> 
         for r in runs(word, font):
             if r.bar:
                 d.line((rx, xy[1], rx + r.bar, xy[1]), fill=fill, width=max(2, round(font.size * 0.05)))
+            elif r.icon:
+                draw_speaker(d, rx, xy[1], font.size, ICONS[r.icon][1], fill)
             else:
                 d.text((rx + r.dx, xy[1] + r.dy), r.text, font=r.font, fill=fill, anchor="lm")
             rx += r.advance
