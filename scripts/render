@@ -17,10 +17,10 @@ import shutil
 import subprocess
 import sys
 from concurrent.futures import ProcessPoolExecutor
-from functools import lru_cache
 from contextvars import ContextVar
 from dataclasses import dataclass, replace
 from enum import StrEnum
+from functools import lru_cache
 from pathlib import Path
 
 from catppuccin import PALETTE as catppuccin_palette
@@ -227,7 +227,6 @@ PHRASES = {"c play pause": "⏯", "c prev": "⏮", "c next": "⏭",
            "mute": "\ue000", "c vol dn": "\ue001", "c vol up": "\ue002"}
 # Label rewrites that stay plain text (regex -> replacement).
 REWRITES = {r"bt bt sel (\d)": r"BT \1", "bt bt clr": "BT clear", r"kp n(\d)": r"NP\1"}
-# Characters that the main font lacks and are drawn with the symbol font.
 # Symbol size relative to the label font.
 SYMBOL_SCALE = 1.0
 
@@ -426,7 +425,7 @@ def draw_speaker(d, x: float, y: float, size: float, waves: int | None, fill) ->
         d.arc((cx - r, cy - r, cx + r, cy + r), -50, 50, fill=fill, width=width)
 
 
-def word_width(d, word: str, font) -> float:
+def word_width(word: str, font) -> float:
     return sum(r.advance for r in runs(word, font))
 
 
@@ -435,7 +434,7 @@ def text_width(d: ImageDraw.ImageDraw, text: str, font) -> float:
     def line_width(line: str) -> float:
         words = line.split()
         gap = WORD_GAP * font.size
-        return sum(word_width(d, w, font) for w in words) + gap * max(len(words) - 1, 0)
+        return sum(word_width(w, font) for w in words) + gap * max(len(words) - 1, 0)
     return max(map(line_width, text.split("\n")))
 
 
@@ -455,7 +454,7 @@ def draw_text(d, xy, text: str, font, fill, underline: tuple[int, ...] = ()) -> 
     ascent, descent = font.getmetrics()
     line_y = xy[1] + (ascent - descent) / 2 + 0.14 * font.size  # just below baseline
     for i, word in enumerate(text.split()):
-        width = word_width(d, word, font)
+        width = word_width(word, font)
         rx = x
         for r in runs(word, font):
             if r.bar:
