@@ -313,10 +313,6 @@ FONT_CANDIDATES = [
     "~/Library/Fonts/0xProto-Regular.otf",
     "/Library/Fonts/0xProto-Regular.otf",
     "~/.local/share/fonts/0xProto-Regular.otf",
-    "/System/Library/Fonts/SFNSMono.ttf",
-    "/System/Library/Fonts/Menlo.ttc",
-    "/Library/Fonts/Arial.ttf",
-    "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
 ]
 
 
@@ -325,10 +321,7 @@ FONT_CANDIDATES = [
 SYMBOL_FONT_CANDIDATES = [
     "/System/Library/Fonts/SFNS.ttf",
     "/System/Library/Fonts/Menlo.ttc",
-    "/System/Library/Fonts/Apple Symbols.ttf",
-    "/System/Library/Fonts/Supplemental/STIXGeneral.otf",
     "/System/Library/Fonts/Supplemental/STIXTwoMath.otf",
-    "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
 ]
 
 
