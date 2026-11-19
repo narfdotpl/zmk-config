@@ -40,19 +40,28 @@ Configuration of my Corne keyboard.
 
 ## Layers
 
-Images have not been updated [for a while](https://github.com/narfdotpl/zmk-config/compare/113ec9a057dc9de4e0a4f90d7a0cd3a8a14dcf2a...master).
-
+Layer images are auto-updated by `scripts/render`.
 
 ### Base
 
-![](images/layers/base.png)
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="images/light/layers/base.webp">
+  <img src="images/dark/layers/base.webp">
+</picture>
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="images/light/layers/legend.webp">
+  <img src="images/dark/layers/legend.webp">
+</picture>
 
 
 ### Polemak
 
 Colemak DH modified for Polish and Vim
 
-![](images/layers/colemak-mods.png)
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="images/light/layers/polemak.webp">
+  <img src="images/dark/layers/polemak.webp">
+</picture>
 
 - I write in English and Polish and I use Vim
 - I started with Colemak DH (switching from QWERTY after three decades)
@@ -65,49 +74,102 @@ Colemak DH modified for Polish and Vim
 - swapped `F` and `W` so that closing windows is more convenient to me
 - the whole time I was using Colemak DH [layout analysis tool][analyze] to make the layout better for Polish and not much worse for English:
 
-![](images/polemak.png)
+| Layout | Finger effort | EN | PL | extra | Left hand | EN | PL |
+| :-- | --: | --: | --: | --: | --: | --: | --: |
+| QWERTY | 2,49 | 2,45 | 2,54 | **4%** | 55% | 55% | 54% |
+| Colemak | 1,92 | 1,82 | 2,02 | 11% | 47% | 45% | 49% |
+| Colemak DH | 1,86 | **1,73** | 2,00 | 16% | 47% | 45% | 49% |
+| just JK | 1,86 | **1,73** | 2,00 | 15% | 47% | 45% | 49% |
+| JK + XVCDZ | **1,85** | **1,73** | 1,96 | 13% | 47% | 45% | 49% |
+| JK + XVCZD | 1,86 | 1,79 | 1,93 | 8% | 47% | 45% | 49% |
+| JK + XCVZD | 1,88 | 1,80 | 1,96 | 9% | 47% | 45% | 49% |
+| **JK + XVCZD + FW aka Polemak** | **1,85** | 1,79 | **1,91** | **6%** | 47% | 45% | 49% |
 
 
 ### Alpha layer
 
 Just alphabet keys with no hold behaviours.
 
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="images/light/layers/alpha.webp">
+  <img src="images/dark/layers/alpha.webp">
+</picture>
+
 
 ### Greek layer
 
 Greek characters using [urob/zmk-helpers](https://github.com/urob/zmk-helpers) and a Unicode hack on macOS: [Hammerspoon bindings](https://github.com/narfdotpl/dotfiles/commit/3fc93d50cc17e3a4dcf65a74143abaeaa2d14f0d) that toggle the [Unicode input source](https://github.com/narfdotpl/narf.pl/commit/4bab2c4219e701169b5905053d3f5fc19f7d1ae6).
 
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="images/light/layers/greek.webp">
+  <img src="images/dark/layers/greek.webp">
+</picture>
+
 
 ### Apps and windows
 
-Powered by [Hammerspoon][]:
+Apps on the left, window management on the right. Powered by [Hammerspoon][].
 
-![](images/layers/apps.png)
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="images/light/layers/apps.webp">
+  <img src="images/dark/layers/apps.webp">
+</picture>
 
 
 ### System
 
-![](images/layers/system.png)
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="images/light/layers/system.webp">
+  <img src="images/dark/layers/system.webp">
+</picture>
 
 
 ### Bluetooth
 
-![](images/layers/bluetooth.png)
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="images/light/layers/bluetooth.webp">
+  <img src="images/dark/layers/bluetooth.webp">
+</picture>
 
 
 ### Symbols and code
 
-![](images/layers/symbols.png)
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="images/light/layers/symbols.webp">
+  <img src="images/dark/layers/symbols.webp">
+</picture>
 
 
 ### Numbers
 
-![](images/layers/numbers.png)
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="images/light/layers/numbers.webp">
+  <img src="images/dark/layers/numbers.webp">
+</picture>
 
 
 ### F1–F12
 
-![](images/layers/f1-f12.png)
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="images/light/layers/f1_f12.webp">
+  <img src="images/dark/layers/f1_f12.webp">
+</picture>
+
+
+### Numpad
+
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="images/light/layers/numpad.webp">
+  <img src="images/dark/layers/numpad.webp">
+</picture>
+
+
+### Equal operators
+
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="images/light/layers/equal_operators.webp">
+  <img src="images/dark/layers/equal_operators.webp">
+</picture>
 
 
 ## Building firmware locally
@@ -139,11 +201,14 @@ git clone git@github.com:narfdotpl/zmk-config.git
 docker volume create --driver local -o o=bind -o type=none -o device="$HOME/github/zmk-config" zmk-config
 cd zmk-config
 git submodule update --init
-brew install pyenv pyenv-virtualenv
-pyenv install 3.11.3
-pyenv virtualenv zmk-config
-pyenv activate zmk-config
-pip install peat
+brew install watchexec
+```
+
+Dependencies of the `scripts/render` script ([uv][], [ast-grep][], and the [0xProto][] font):
+
+```
+brew install uv ast-grep
+brew install --cask font-0xproto
 ```
 
 ```
@@ -169,4 +234,7 @@ Install [ZMK Tools][] VS Code plugin.
   [Hammerspoon]: https://github.com/narfdotpl/dotfiles/blob/master/home/.hammerspoon/init.lua
   [User Setup]: https://zmk.dev/docs/user-setup
   [Toolchain Setup]: https://zmk.dev/docs/development/setup
+  [uv]: https://docs.astral.sh/uv/
+  [ast-grep]: https://ast-grep.github.io/
+  [0xProto]: https://github.com/0xType/0xProto
   [ZMK Tools]: https://marketplace.visualstudio.com/items?itemName=spadin.zmk-tools

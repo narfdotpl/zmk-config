@@ -1,0 +1,695 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["pillow", "fonttools", "catppuccin"]
+# ///
+"""Render ZMK keymap layers as .webp images.
+
+Disclosure: Throughout renderer and parser, I used probabilistic automation in the form of Anthropic Claude Sonnet 5.5 used via the Pi harness and Claude Code harness. I reviewed, edited, and approved all changes.
+"""
+
+from __future__ import annotations
+
+import json
+import math
+import re
+import shutil
+import subprocess
+import sys
+from concurrent.futures import ProcessPoolExecutor
+from contextvars import ContextVar
+from dataclasses import dataclass, replace
+from enum import StrEnum
+from functools import lru_cache
+from pathlib import Path
+
+from catppuccin import PALETTE as catppuccin_palette
+from fontTools.ttLib import TTFont
+from PIL import Image, ImageDraw, ImageFont
+
+from keymap_parser import KEY_NAMES, Keymap, ParsedKey
+
+ROOT = Path(__file__).resolve().parent.parent
+
+
+class Theme(StrEnum):
+    DARK = "dark"
+    LIGHT = "light"
+
+    @property
+    def flavor(self) -> str:
+        return {Theme.DARK: "frappe", Theme.LIGHT: "latte"}[self]
+
+
+# --- Palette (Catppuccin Frappé for dark, Latte for light) ------------------------------------------------
+
+_palette: ContextVar = ContextVar("palette", default=catppuccin_palette.frappe.colors)
+
+
+def set_theme(theme: Theme) -> Path:
+    """Switch the active palette; returns the theme's output directory."""
+    _palette.set(getattr(catppuccin_palette, theme.flavor).colors)
+    out = ROOT / "images" / theme / "layers"
+    out.mkdir(parents=True, exist_ok=True)
+    return out
+
+BG_TINT = 0.2  # strength of the accent in subtle key backgrounds
+
+
+def _blend(fg: str, bg: str, t: float) -> str:
+    f, b = (tuple(int(c[i : i + 2], 16) for i in (1, 3, 5)) for c in (fg, bg))
+    return "#" + "".join(f"{round(b[i] + (f[i] - b[i]) * t):02x}" for i in range(3))
+
+
+# --- Geometry (in key units; 1.0 = key pitch) ---------------------------------
+
+# Vertical stagger of each column, outer -> inner, for the left half.
+COLUMN_OFFSETS = [x / 16 for x in [7.5, 3, 0, 2, 4.25]]  # in mm
+MIRROR_X = 6.24  # x of the axis between the two halves
+
+
+@dataclass(frozen=True)
+class Slot:
+    x: float  # center
+    y: float  # center
+    w: float = 1.0
+    h: float = 1.0
+    rot: float = 0.0  # degrees, clockwise
+
+
+def _left_slots() -> list[Slot]:
+    slots = [
+        Slot(col + 0.5, COLUMN_OFFSETS[col] + row + 0.5)
+        for row in range(3)
+        for col in range(5)
+    ]
+    # Thumbs, left -> right. The last one is the tall key.
+    slots += [
+        Slot(3.00, 3.65, rot=0),
+        Slot(4.08, 3.80, rot=15),
+        Slot(5.20, 3.96, h=1.5, rot=25),
+    ]
+    return slots
+
+
+def _mirror(s: Slot) -> Slot:
+    return Slot(2 * MIRROR_X - s.x, s.y, s.w, s.h, -s.rot)
+
+
+def build_slots() -> list[Slot]:
+    """36 slots in ZMK keymap order: for each of the 3 rows 5 left keys then
+    5 right keys (left -> right), then 3 left thumbs, then 3 right thumbs."""
+    left = _left_slots()
+    left_main, left_thumbs = left[:15], left[15:]
+    slots: list[Slot] = []
+    for row in range(3):
+        slots += left_main[row * 5 : row * 5 + 5]
+        mirrored = [_mirror(s) for s in left_main[row * 5 : row * 5 + 5]]
+        slots += sorted(mirrored, key=lambda s: s.x)
+    slots += left_thumbs
+    slots += sorted((_mirror(s) for s in left_thumbs), key=lambda s: s.x)
+    return slots
+
+
+SLOTS = build_slots()
+assert len(SLOTS) == 36
+
+# --- Keys & layers ------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class Key:
+    label: str = ""
+    hold: str = ""
+    label_color: str = "text"
+    hold_color: str = "overlay0"
+    bg: str | None = None  # palette name; None -> default key color
+    none: bool = False  # disabled key, drawn crossed out
+    underline: tuple[int, ...] = ()  # indexes of label words to underline
+    striped: bool = False  # diagonal stripes on the background (marks a difference)
+
+
+# Hold labels (as produced by the parser) -> text and palette color.
+HOLD_DISPLAY = {"apps_and_lcmd": "APPS", "greek_mode": "GREEK"}
+# Background of the keys held to reach a layer (same for every layer).
+HELD_BG = "bg_blue"
+# Layer node name -> palette color (used for hold labels).
+LAYER_COLORS = {
+    "alpha_layer": "mauve",
+    "greek_layer": "teal",
+    "system_layer": "red",
+    "bluetooth_layer": "blue",
+    "apps_layer": "blue",
+    "symbols_layer": "green",
+    "numbers_layer": "yellow",
+    "numpad_layer": "peach",
+    "f1_f12_layer": "peach",
+    "equal_operators_layer": "peach",
+}
+
+# Placeholder layers that are not worth rendering.
+SKIP_LAYERS = {"trans_layer", "none_layer"}
+
+
+# ast-grep rules: `key = "App"` fields of the table that a Hammerspoon loop
+# feeds to hs.application.launchOrFocus, and `bindHyper("key", "label", ...)` calls.
+HAMMERSPOON_INIT = Path("~/.hammerspoon/init.lua").expanduser()
+LAUNCH_APP_RULE = """
+id: launch-app
+language: lua
+rule:
+  kind: field
+  all:
+    - has: {field: name, kind: identifier, pattern: $KEY}
+    - has: {field: value, kind: string, pattern: $LABEL}
+  inside:
+    stopBy: end
+    kind: for_statement
+    has:
+      stopBy: end
+      pattern: hs.application.launchOrFocus($$$)
+"""
+BIND_HYPER_RULE = """
+id: bind-hyper
+language: lua
+rule:
+  pattern: bindHyper($KEY, $LABEL, $$$)
+  not:
+    inside:
+      kind: function_declaration
+"""
+
+
+# Long app names that would shrink to unreadable on a key.
+APP_SHORT_NAMES = {
+    "Visual Studio Code": "VS Code",
+    "Things3": "Things",
+    "Ableton Live 12 Suite": "Ableton\nLive",
+}
+
+
+@lru_cache(maxsize=None)
+def hyper_labels() -> dict[str, str]:
+    """Hyper+key -> name of the app it opens (or the label given to bindHyper),
+    read from Hammerspoon's config with ast-grep. Empty if the config is missing."""
+    if not HAMMERSPOON_INIT.exists():
+        return {}
+    labels = {}
+    for rule in (LAUNCH_APP_RULE, BIND_HYPER_RULE):
+        out = subprocess.run(
+            ["ast-grep", "scan", "--inline-rules", rule, "--json=compact", str(HAMMERSPOON_INIT)],
+            capture_output=True, text=True,
+        ).stdout
+        for m in json.loads(out or "[]"):
+            v = m["metaVariables"]["single"]
+            label = v["LABEL"]["text"].strip("\"'")
+            # short names keep their spaces, other labels wrap onto lines
+            key = v["KEY"]["text"].strip("\"'").upper()
+            labels[KEY_NAMES.get(key, key)] = APP_SHORT_NAMES.get(label) or label.replace(" ", "\n")
+    return labels
+
+
+def layer_filename(name: str) -> str:
+    name = name.removesuffix("_layer")
+    return {"default": "base"}.get(name, name)
+
+
+# Key names -> symbols. Modifiers held together are joined without "+".
+SYMBOLS = {
+    "CMD": "⌘", "SHIFT": "⇧", "ALT": "⌥", "CTRL": "⌃", "HYPER": "✦",
+    "BS": "⌫", "DEL": "⌦", "ENTER": "⏎", "TAB": "⇥", "ESC": "⎋",
+    "CAPS": "⇪", "SPC": "␣",
+}  # fmt: skip
+# Multi-word key names -> symbols (regexes, matched before words are split).
+# Brightness keys are sent with Ctrl, which is dropped from the label.
+PHRASES = {"c play pause": "⏯", "c prev": "⏮", "c next": "⏭",
+           r"(?:ctrl\+)?c bri dec": "☼", r"(?:ctrl\+)?c bri inc": "☀",
+           "mute": "\ue000", "c vol dn": "\ue001", "c vol up": "\ue002"}
+# Label rewrites that stay plain text (regex -> replacement).
+REWRITES = {r"bt bt sel (\d)": r"BT \1", "bt bt clr": "BT clear", r"kp n(\d)": r"NP\1"}
+# Symbol size relative to the label font.
+SYMBOL_SCALE = 1.0
+
+
+def symbolize(text: str) -> str:
+    """Replace key names with symbols and drop "+" between combined keys,
+    e.g. "CMD+SHIFT+4" -> "⌘⇧4". Words are kept (a "+" at the start or end of a word is the plus key)."""
+    for phrase, symbol in {**PHRASES, **REWRITES}.items():
+        text = re.sub(rf"\b{phrase}\b", symbol, text, flags=re.I)
+    lines = []
+    for line in text.split("\n"):
+        words = []
+        for word in line.split():
+            parts = re.split(r"(?<=.)\+(?=.)", word)
+            words.append("".join(SYMBOLS.get(p, p) for p in parts))
+        lines.append(" ".join(words))
+    return "\n".join(lines)
+
+
+GREEK = {
+    "alpha": "α", "beta": "β", "gamma": "γ", "delta": "δ", "epsilon": "ε",
+    "zeta": "ζ", "eta": "η", "theta": "θ", "iota": "ι", "kappa": "κ",
+    "lambda": "λ", "mu": "μ", "nu": "ν", "xi": "ξ", "omikron": "ο",
+    "omicron": "ο", "pi": "π", "rho": "ρ", "sigma": "σ", "tau": "τ",
+    "upsilon": "υ", "phi": "φ", "chi": "χ", "psi": "ψ", "omega": "ω",
+}  # fmt: skip
+# Speaker icons have no monochrome glyph in the system fonts, so they are drawn
+# as shapes (private-use characters stand in for them in labels).
+# char -> (width in em, number of sound waves; None for mute's cross)
+ICONS = {"\ue000": (1.0, None), "\ue001": (0.7, 1), "\ue002": (0.9, 2)}
+SYMBOL_CHARS = set("".join(SYMBOLS.values()) + "".join(v for v in PHRASES.values() if v not in ICONS) + "←↑→↓" + "".join(GREEK.values()))
+
+
+def label_sides(keys: list[Key]) -> list[Key]:
+    """Tell the two bootloader keys apart by the half of the board they are on."""
+    return [
+        replace(k, label=f"boot\n{'left' if SLOTS[i].x < MIRROR_X else 'right'}") if k.label == "BOOT" else k
+        for i, k in enumerate(keys)
+    ]
+
+
+def greekify(text: str) -> str:
+    """Turn zmk-helpers unicode bindings ("&el_alpha") into Greek letters."""
+    return re.sub(r"&el_(\w+)", lambda m: GREEK.get(m.group(1), m.group(0)), text)
+
+
+def to_key(pk: ParsedKey) -> Key:
+    if pk.kind == "none":
+        return Key(none=True)
+    if pk.kind == "trans":
+        return Key()
+    underline: tuple[int, ...] = ()
+    if pk.tap_mod and pk.tap_mod != pk.tap:
+        label = f"{pk.tap} {pk.tap_mod}"
+        if pk.mods == "ALT":  # underline the alt variant
+            first = len(pk.tap.split())
+            underline = tuple(range(first, first + len(pk.tap_mod.split())))
+    else:
+        label = pk.tap
+    if label.startswith("HYPER+") and (hyper_label := hyper_labels().get(label.removeprefix("HYPER+"))):
+        label = hyper_label
+    hold = symbolize(HOLD_DISPLAY.get(pk.hold, pk.hold))
+    label = symbolize(greekify(label))
+    return Key(label, hold, hold_color=LAYER_COLORS.get(pk.hold_layer, "overlay0"),
+               underline=underline)
+
+
+# --- Rendering ----------------------------------------------------------------
+
+OUT_WIDTH = 1600  # px, width of every output image
+UNIT = OUT_WIDTH / (2 * MIRROR_X + 2 * 0.5)  # px per key unit (layer images come out OUT_WIDTH wide)
+GAP = 0.08  # gap between keys, in units
+RADIUS = 0.12  # corner radius, in units (keys and whole image)
+BORDER = 2  # px
+MARGIN = 0.5  # units
+SS = 2  # supersampling factor
+STRIPE_TINT = 0.3  # strength of the yellow in stripes
+STRIPE_GAP_TINT = 0.3  # strength of the yellow between stripes, relative to STRIPE_TINT
+STRIPE_WIDTH = 0.06  # units
+STRIPE_PERIOD = 0.16  # units, distance between stripe starts (measured along an axis)
+
+FONT_CANDIDATES = [
+    "~/Library/Fonts/0xProto-Regular.otf",
+    "/Library/Fonts/0xProto-Regular.otf",
+    "~/.local/share/fonts/0xProto-Regular.otf",
+]
+
+
+# Symbols come from San Francisco, the font macOS menus use, so they have
+# natural sizes. Later fonts fill in glyphs SF lacks (e.g. ⇥ and ␣).
+SYMBOL_FONT_CANDIDATES = [
+    "/System/Library/Fonts/SFNS.ttf",
+    "/System/Library/Fonts/Menlo.ttc",
+    "/System/Library/Fonts/Supplemental/STIXTwoMath.otf",
+]
+
+
+@lru_cache(maxsize=None)
+def _cmap(path: str) -> frozenset[int]:
+    try:
+        return frozenset(TTFont(path, fontNumber=0).getBestCmap())
+    except Exception:
+        return frozenset()
+
+
+@lru_cache(maxsize=None)
+def load_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    for path in FONT_CANDIDATES:
+        try:
+            return ImageFont.truetype(str(Path(path).expanduser()), size)
+        except OSError:
+            continue
+    return ImageFont.load_default(size)
+
+
+@lru_cache(maxsize=None)
+def symbol_font(ch: str, size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    """First symbol font that has a glyph for `ch`."""
+    for path in SYMBOL_FONT_CANDIDATES:
+        if ord(ch) in _cmap(path):
+            try:
+                return ImageFont.truetype(path, size)
+            except OSError:
+                pass
+    return load_font(size)
+
+
+WORD_GAP = 0.3  # gap between words, in em (a regular space is ~0.6 em in mono fonts)
+
+
+FRACTION = re.compile(r"(\d+)/(\d+)")
+FRACTION_SCALE = 0.62  # size of numerator and denominator relative to the label font
+FRACTION_SHIFT = 0.38  # vertical offset of numerator (up) and denominator (down), in em
+
+
+@dataclass(frozen=True)
+class Run:
+    text: str  # empty for a fraction bar
+    font: ImageFont.FreeTypeFont | ImageFont.ImageFont
+    dx: float = 0.0  # horizontal offset from the run's start
+    dy: float = 0.0
+    advance: float = 0.0  # width the run takes up
+    bar: float = 0.0  # length of the fraction bar to draw instead of text
+    icon: str = ""  # key of ICONS to draw instead of text
+
+
+def runs(word: str, font) -> list[Run]:
+    """Split a word into runs: symbol characters are drawn with the symbol font,
+    fractions as a numerator stacked above a bar and a denominator."""
+    out: list[Run] = []
+
+    def add(text: str, f) -> None:
+        width = f.getlength(text)
+        if out and out[-1].font is f and not out[-1].dy and not out[-1].bar and not out[-1].icon:
+            last = out.pop()
+            out.append(Run(last.text + text, f, advance=last.advance + width))
+        else:
+            out.append(Run(text, f, advance=width))
+
+    small = load_font(max(round(font.size * FRACTION_SCALE), 1))
+    shift = FRACTION_SHIFT * font.size
+    pos = 0
+    for m in [*FRACTION.finditer(word), None]:
+        end = m.start() if m else len(word)
+        for ch in word[pos:end]:
+            if ch in ICONS:
+                out.append(Run("", font, icon=ch, advance=ICONS[ch][0] * font.size))
+                continue
+            add(ch, symbol_font(ch, round(font.size * SYMBOL_SCALE)) if ch in SYMBOL_CHARS else font)
+        if m:
+            num, den = m.groups()
+            w_num, w_den = small.getlength(num), small.getlength(den)
+            width = max(w_num, w_den)
+            out.append(Run(num, small, dx=(width - w_num) / 2, dy=-shift))
+            out.append(Run("", small, bar=width))
+            out.append(Run(den, small, dx=(width - w_den) / 2, dy=shift, advance=width))
+            pos = m.end()
+    return out
+
+
+def draw_speaker(d, x: float, y: float, size: float, waves: int | None, fill) -> None:
+    """Speaker icon with its left edge at x, centered on y; `size` is the em."""
+    def pt(px: float, py: float) -> tuple[float, float]:
+        return x + px * size, y + py * size
+
+    width = max(2, round(0.07 * size))
+    d.rectangle((*pt(0, -0.14), *pt(0.2, 0.14)), fill=fill)
+    d.polygon([pt(0.2, -0.14), pt(0.45, -0.34), pt(0.45, 0.34), pt(0.2, 0.14)], fill=fill)
+    if waves is None:  # mute: a cross
+        for a, b in (((0.6, -0.16), (0.92, 0.16)), ((0.6, 0.16), (0.92, -0.16))):
+            d.line((*pt(*a), *pt(*b)), fill=fill, width=width)
+        return
+    for i in range(waves):
+        r = (0.2 + 0.18 * i) * size
+        cx, cy = pt(0.45, 0)
+        d.arc((cx - r, cy - r, cx + r, cy + r), -50, 50, fill=fill, width=width)
+
+
+def word_width(word: str, font) -> float:
+    return sum(r.advance for r in runs(word, font))
+
+
+def text_width(d: ImageDraw.ImageDraw, text: str, font) -> float:
+    """Width of the widest line."""
+    def line_width(line: str) -> float:
+        words = line.split()
+        gap = WORD_GAP * font.size
+        return sum(word_width(w, font) for w in words) + gap * max(len(words) - 1, 0)
+    return max(map(line_width, text.split("\n")))
+
+
+LINE_HEIGHT = 1.3  # line spacing of multi-line labels, relative to the font size
+
+
+def draw_text(d, xy, text: str, font, fill, underline: tuple[int, ...] = ()) -> None:
+    """Draw text centered at xy, with tighter spacing between words.
+    Words whose index is in `underline` get underlined. Lines are stacked."""
+    lines = text.split("\n")
+    if len(lines) > 1:
+        step = LINE_HEIGHT * font.size
+        for i, line in enumerate(lines):
+            draw_text(d, (xy[0], xy[1] + (i - (len(lines) - 1) / 2) * step), line, font, fill)
+        return
+    x = xy[0] - text_width(d, text, font) / 2
+    ascent, descent = font.getmetrics()
+    line_y = xy[1] + (ascent - descent) / 2 + 0.14 * font.size  # just below baseline
+    for i, word in enumerate(text.split()):
+        width = word_width(word, font)
+        rx = x
+        for r in runs(word, font):
+            if r.bar:
+                d.line((rx, xy[1], rx + r.bar, xy[1]), fill=fill, width=max(2, round(font.size * 0.05)))
+            elif r.icon:
+                draw_speaker(d, rx, xy[1], font.size, ICONS[r.icon][1], fill)
+            else:
+                d.text((rx + r.dx, xy[1] + r.dy), r.text, font=r.font, fill=fill, anchor="lm")
+            rx += r.advance
+        if i in underline:
+            d.line((x, line_y, x + width, line_y), fill=fill, width=max(2, round(font.size * 0.06)))
+        x += width + WORD_GAP * font.size
+
+
+def fit_font(d: ImageDraw.ImageDraw, text: str, max_width: float, size: int):
+    """Largest font (<= size) for which the text fits max_width."""
+    while size > 8:
+        font = load_font(size)
+        if text_width(d, text, font) <= max_width:
+            return font
+        size -= 2
+    return load_font(size)
+
+
+def color(name: str) -> str:
+    """Hex for a Catppuccin color name; "bg_<name>" is a subtle tint of it."""
+    palette = _palette.get()
+    if name.startswith("bg_"):
+        return _blend(getattr(palette, name[3:]).hex, palette.base.hex, BG_TINT)
+    return getattr(palette, name).hex
+
+
+def stripes(size: tuple[int, int], box: tuple[int, int, int, int], rot: float) -> Image.Image:
+    """45° stripes (in the final image, so counter-rotated by the key's
+    rotation) clipped to the rounded key rectangle `box`."""
+    u = UNIT * SS
+    n = 2 * max(size)
+    yellow = _palette.get().yellow.hex
+    gap = tuple(int(yellow[i : i + 2], 16) for i in (1, 3, 5)) + (round(255 * STRIPE_TINT * STRIPE_GAP_TINT),)
+    layer = Image.new("RGBA", (n, n), gap)
+    d = ImageDraw.Draw(layer)
+    period = STRIPE_PERIOD * u * math.sqrt(2)
+    for k in range(-2 * n, 2 * n, max(1, round(period))):
+        d.line((k, n, k + n, 0), fill=_blend(_palette.get().yellow.hex, _palette.get().base.hex, STRIPE_TINT), width=round(STRIPE_WIDTH * u * math.sqrt(2)))
+    layer = layer.rotate(rot, resample=Image.BICUBIC)
+    left, top = (n - size[0]) // 2, (n - size[1]) // 2
+    layer = layer.crop((left, top, left + size[0], top + size[1]))
+    mask = Image.new("L", size, 0)
+    ImageDraw.Draw(mask).rounded_rectangle(box, radius=RADIUS * u, fill=255)
+    layer.putalpha(Image.composite(layer.getchannel("A"), Image.new("L", size, 0), mask))
+    return layer
+
+
+def draw_key(canvas: Image.Image, slot: Slot, key: Key) -> None:
+    u = UNIT * SS
+    w = round((slot.w - GAP) * u)
+    h = round((slot.h - GAP) * u)
+    pad = 2 * SS
+    tile = Image.new("RGBA", (w + 2 * pad, h + 2 * pad), (0, 0, 0, 0))
+    d = ImageDraw.Draw(tile)
+    d.rounded_rectangle(
+        (pad, pad, pad + w - 1, pad + h - 1),
+        radius=RADIUS * u,
+        fill=color(key.bg or "base"),
+        outline=color("surface1"),
+        width=BORDER * SS,
+    )
+
+    if key.striped:
+        tile.alpha_composite(stripes(tile.size, (pad, pad, pad + w - 1, pad + h - 1), slot.rot))
+        d = ImageDraw.Draw(tile)
+        d.rounded_rectangle(
+            (pad, pad, pad + w - 1, pad + h - 1),
+            radius=RADIUS * u,
+            outline=color("surface1"),
+            width=BORDER * SS,
+        )
+
+    cx, cy = tile.width / 2, tile.height / 2
+    main_font = fit_font(d, key.label, (w - 0.2 * u), round(0.34 * u))
+    hold_font = fit_font(d, key.hold, (w - 0.2 * u), round(0.15 * u))
+    if key.label:
+        ly = cy - (0.02 * u if key.hold else 0)
+        draw_text(d, (cx, ly), key.label, main_font, color(key.label_color), key.underline)
+    if key.hold:
+        draw_text(d, (cx, pad + h - 0.17 * u), key.hold, hold_font, color(key.hold_color))
+
+    if key.none:
+        inset = 0.28 * u
+        x0, y0, x1, y1 = pad + inset, pad + inset, pad + w - inset, pad + h - inset
+        if h > w:  # keep the cross square on tall keys
+            y0, y1 = cy - (x1 - x0) / 2, cy + (x1 - x0) / 2
+        for line in ((x0, y0, x1, y1), (x0, y1, x1, y0)):
+            d.line(line, fill=color("surface2"), width=3 * SS)
+
+    if slot.rot:
+        tile = tile.rotate(-slot.rot, resample=Image.BICUBIC, expand=True)
+    canvas.alpha_composite(
+        tile, (round(slot.x * u - tile.width / 2), round(slot.y * u - tile.height / 2))
+    )
+
+
+def round_corners(img: Image.Image) -> Image.Image:
+    """Make the image corners transparent, using the same radius as the keys."""
+    mask = Image.new("L", img.size, 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, img.width - 1, img.height - 1), radius=RADIUS * UNIT * SS, fill=255)
+    img = img.copy()
+    img.putalpha(mask)
+    return img
+
+
+def render_layer(name: str, keys: list[Key], theme: Theme) -> Path:
+    out_dir = set_theme(theme)
+    if len(keys) != len(SLOTS):
+        raise ValueError(f"layer {name!r}: expected {len(SLOTS)} keys, got {len(keys)}")
+    u = UNIT * SS
+    width = (2 * MIRROR_X + 2 * MARGIN) * u
+    height = (max(s.y + s.h / 2 + abs(math.sin(math.radians(s.rot))) * 0.5 for s in SLOTS) + 2 * MARGIN) * u
+    canvas = Image.new("RGBA", (round(width), round(height)), color("crust"))
+    # Shift everything by the margin.
+    layer = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
+    for slot, key in zip(SLOTS, keys):
+        draw_key(layer, Slot(slot.x + MARGIN, slot.y + MARGIN, slot.w, slot.h, slot.rot), key)
+    canvas.alpha_composite(layer)
+    canvas = round_corners(canvas)
+    out = canvas.resize((canvas.width // SS, canvas.height // SS), Image.LANCZOS)
+    path = out_dir / f"{name}.webp"
+    out.save(path, "WEBP", quality=90, method=5)
+    return path
+
+
+# (layer, key index, title, description) -- real keys from the keymap.
+LEGEND_ROWS = [
+    ("default_layer", 0, "Tap / hold", "Big label is the tap.\nSmall label at the bottom is the hold."),
+    ("default_layer", 27, "Shift tap", "Right label is what you get with ⇧ held."),
+    ("default_layer", 24, "Alt tap", "Underlined right label is what you get with ⌥ held."),
+    ("default_layer", 30, "Layers", "Uppercase colorful holds activate layers."),
+    ("system_layer", 32, "Layer activator", "Tinted key is the one you hold to reach this layer."),
+    ("alpha_layer", 9, "Transparent", "Empty key falls through to the layer below."),
+    ("apps_layer", 9, "Disabled", "Crossed out key does nothing."),
+    ("polemak", 23, "Striped", "Different than in Colemak DH."),
+]
+
+
+# Colemak DH letters (30 alpha keys, row by row) that Polemak is compared against.
+COLEMAK_DH = "QWFPBJLUY;ARSTGMNEIOZXCDVKH,./"
+
+
+def polemak_keys(km: Keymap) -> list[Key]:
+    """The alpha layer with non-letter keys transparent and keys that differ
+    from Colemak DH striped."""
+    keys = []
+    for i, pk in enumerate(km.layer("alpha_layer")):
+        if not pk.kind and len(pk.tap) == 1 and pk.tap.isalpha() and i < len(COLEMAK_DH):
+            keys.append(Key(pk.tap, striped=pk.tap != COLEMAK_DH[i]))
+        else:
+            keys.append(Key())
+    return keys
+
+
+def layer_key(km: Keymap, layer: str, i: int) -> Key:
+    if layer == "polemak":
+        return polemak_keys(km)[i]
+    key = to_key(km.layer(layer)[i])
+    if any(idx == i for _, idx in km.activating_chain(layer)):
+        key = replace(key, bg=HELD_BG)
+    return key
+
+
+def render_legend(km: Keymap, theme: Theme) -> Path:
+    out_dir = set_theme(theme)
+    u = UNIT * SS
+    row_h = 1.25 * u
+    key_x = MARGIN * u
+    title_font = load_font(round(0.2 * u))
+    body_font = load_font(round(0.15 * u))
+    probe = ImageDraw.Draw(Image.new("RGB", (1, 1)))
+    text_w = max(text_width(probe, line, body_font)
+                 for *_, d in LEGEND_ROWS for line in d.split("\n"))
+    cols = 2
+    per_col = math.ceil(len(LEGEND_ROWS) / cols)
+    col_w = 1.6 * u + text_w + 0.6 * u  # key + text + gutter
+    width = round(2 * MARGIN * u + cols * col_w - 0.6 * u)
+    height = round(2 * MARGIN * u + row_h * per_col)
+    canvas = Image.new("RGBA", (width, height), color("crust"))
+    layer = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(layer)
+    for i, (lname, idx, title, desc) in enumerate(LEGEND_ROWS):
+        key = layer_key(km, lname, idx)
+        col, row = divmod(i, per_col)  # fill column by column
+        cy = MARGIN * u + row_h * (row + 0.5)
+        kx = key_x + col * col_w
+        tx = kx + 1.6 * u
+        draw_key(layer, Slot((kx + 0.5 * u) / u, cy / u), key)
+        lines = desc.split("\n")
+        shift = -0.1 * (len(lines) - 1)
+        rows = [(title, title_font, -0.17 + shift, "text")]
+        rows += [(ln, body_font, 0.17 + shift + 0.2 * j, "overlay0") for j, ln in enumerate(lines)]
+        for text, font, dy, fill in rows:
+            draw_text(d, (tx + text_width(d, text, font) / 2, cy + dy * u), text, font, color(fill))
+    canvas.alpha_composite(layer)
+    canvas = round_corners(canvas)
+    out = canvas.resize((OUT_WIDTH, round(height * OUT_WIDTH / width)), Image.LANCZOS)
+    path = out_dir / "legend.webp"
+    out.save(path, "WEBP", quality=90, method=5)
+    return path
+
+
+def main() -> None:
+    if not shutil.which("ast-grep"):
+        sys.exit("error: ast-grep not found (install it with: brew install ast-grep)")
+    km = Keymap()
+    if sys.argv[1:] == ["legend"]:
+        for theme in Theme:
+            print(render_legend(km, theme))
+        return
+    names = sys.argv[1:] or [n for n in km.layers if n not in SKIP_LAYERS] + ["polemak"]
+    jobs: list[tuple[str, list[Key]]] = []
+    for name in names:
+        if name == "polemak":
+            jobs.append((name, polemak_keys(km)))
+            continue
+        keys = label_sides([to_key(pk) for pk in km.layer(name)])
+        # Tint every key that is held to bring this layer up.
+        for _, i in km.activating_chain(name):
+            keys[i] = replace(keys[i], bg=HELD_BG)
+        jobs.append((layer_filename(name), keys))
+    # Layers are CPU-bound, so render them in parallel processes.
+    with ProcessPoolExecutor() as pool:
+        futures = [pool.submit(render_layer, n, k, t) for t in Theme for n, k in jobs]
+        if not sys.argv[1:]:
+            futures += [pool.submit(render_legend, km, t) for t in Theme]
+        for f in futures:
+            print(f.result())
+
+
+if __name__ == "__main__":
+    main()
